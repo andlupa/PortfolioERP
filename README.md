@@ -154,6 +154,19 @@ The purpose of this project is to demonstrate practical experience in:
 
 ---
 
+- Categories CRUD
+- Products CRUD
+- Search, filters, sorting and pagination
+- Customers CRUD
+- Sales orders and order lines
+- Stock validation and updates
+- Order confirmation and cancellation
+- Transactional order creation
+- Global exception handling
+- PostgreSQL migrations
+
+
+
 ## Status
 
 🚧 Work in Progress

@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Elementi di soluzione/">
+    <File Path=".gitignore" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="PortfolioERP.Api/PortfolioERP.Api.csproj" />
+  <Project Path="PortfolioERP.Application/PortfolioERP.Application.csproj" />
+  <Project Path="PortfolioERP.Domain/PortfolioERP.Domain.csproj" />
+  <Project Path="PortfolioERP.Infrastructure/PortfolioERP.Infrastructure.csproj" />
+  <Project Path="PortfolioERP.Tests/PortfolioERP.Tests.csproj" />
+</Solution>
