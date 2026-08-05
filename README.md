@@ -1,6 +1,3 @@
-# Wharehouse_BackEnd
-A modern ERP web application developed with ASP.NET Core Web API, Angular, PostgreSQL and Docker, showcasing enterprise-level architecture, REST APIs, authentication, and business workflows.
-
 # PortfolioERP
 
 PortfolioERP is a full-stack Enterprise Resource Planning (ERP) application developed as a professional portfolio project to demonstrate modern software development practices using the Microsoft technology stack.
