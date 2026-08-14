@@ -22,10 +22,10 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore backend/PortfolioERP_BackEnd.sln
+        run: dotnet restore backend/PortfolioERP_BackEnd.slnx
 
       - name: Build
-        run: dotnet build backend/PortfolioERP_BackEnd.sln --no-restore
+        run: dotnet build backend/PortfolioERP_BackEnd.slnx --no-restore
 
       - name: Run tests
-        run: dotnet test backend/PortfolioERP_BackEnd.sln --no-build
+        run: dotnet test backend/PortfolioERP_BackEnd.slnx --no-build
