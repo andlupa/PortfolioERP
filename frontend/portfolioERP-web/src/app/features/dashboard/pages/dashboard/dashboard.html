@@ -1,0 +1,308 @@
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Dashboard</h1>
+      <p class="text-secondary mb-0">
+        Panoramica generale di PortfolioERP
+      </p>
+    </div>
+
+    <button class="btn btn-outline-secondary"
+            type="button"
+            (click)="loadDashboard()">
+      Aggiorna
+    </button>
+  </div>
+
+  @if (loading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+    <p class="text-secondary mt-3">
+      Caricamento dashboard...
+    </p>
+  </div>
+  } @else if (error()) {
+  <div class="alert alert-danger">
+    {{ error() }}
+
+    <button class="btn btn-sm btn-outline-danger ms-3"
+            type="button"
+            (click)="loadDashboard()">
+      Riprova
+    </button>
+  </div>
+  } @else if (dashboard()) {
+
+  <!-- KPI -->
+  <div class="row g-4 mb-4">
+
+    <div class="card shadow-sm h-100 dashboard-kpi"
+         (click)="openProducts()">
+      <div class="card-body">
+        <div class="text-secondary small mb-2">
+          Prodotti attivi
+        </div>
+
+        <div class="display-6 fw-semibold">
+          {{ dashboard()!.activeProducts }}
+        </div>
+
+        <div class="small text-primary mt-2">
+          Visualizza prodotti →
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-xl">
+      <div class="card shadow-sm h-100 dashboard-kpi"
+           (click)="openCustomers()">
+        <div class="card-body">
+          <div class="text-secondary small mb-2">
+            Clienti attivi
+          </div>
+
+          <div class="display-6 fw-semibold">
+            {{ dashboard()!.activeCustomers }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-xl">
+      <div class="card shadow-sm h-100 dashboard-kpi"
+           (click)="openOrders()">
+        <div class="card-body">
+          <div class="text-secondary small mb-2">
+            Ordini totali
+          </div>
+
+          <div class="display-6 fw-semibold">
+            {{ dashboard()!.totalOrders }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-xl">
+      <div class="card shadow-sm h-100 dashboard-kpi"
+           (click)="openOrders()">
+        <div class="card-body">
+          <div class="text-secondary small mb-2">
+            Ordini del mese
+          </div>
+
+          <div class="display-6 fw-semibold">
+            {{ dashboard()!.ordersThisMonth }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-12 col-xl">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-secondary small mb-2">
+            Fatturato del mese
+          </div>
+
+          <div class="display-6 fw-semibold">
+            {{
+                dashboard()!.revenueThisMonth
+                  | currency:'EUR':'symbol':'1.2-2':'it-IT'
+            }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+      <strong>
+        Fatturato ultimi 6 mesi
+      </strong>
+    </div>
+
+    <div class="card-body">
+      <div class="revenue-chart-container">
+        <canvas #monthlyRevenueChart></canvas>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="row g-4 mb-4">
+
+    <!-- Ordini per stato -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white">
+          <strong>Ordini per stato</strong>
+        </div>
+
+        <div class="card-body">
+          @if (dashboard()!.ordersByStatus.length > 0) {
+
+          <div class="chart-container mb-4">
+            <canvas #orderStatusChart></canvas>
+          </div>
+
+          @for (
+          item of dashboard()!.ordersByStatus;
+          track item.status
+          ) {
+          <div class="d-flex justify-content-between
+                   align-items-center py-2 border-bottom">
+            <span class="badge"
+                  [ngClass]="getStatusClass(item.status)">
+              {{ getStatusLabel(item.status) }}
+            </span>
+
+            <strong>
+              {{ item.count }}
+            </strong>
+          </div>
+          }
+
+          } @else {
+          <p class="text-secondary mb-0">
+            Nessun ordine presente.
+          </p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Ultimi ordini -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white">
+          <strong>Ultimi ordini</strong>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Numero</th>
+                <th>Data</th>
+                <th>Cliente</th>
+                <th>Stato</th>
+                <th class="text-end">Totale</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (
+              order of dashboard()!.recentOrders;
+              track order.id
+              ) {
+              <tr class="clickable-row"
+                  (click)="openOrder(order.id)">
+                <td>
+                  <strong>
+                    {{ order.orderNumber }}
+                  </strong>
+                </td>
+
+                <td>
+                  {{
+                        order.orderDate
+                          | date:'dd/MM/yyyy'
+                  }}
+                </td>
+
+                <td>
+                  {{ order.customerName }}
+                </td>
+
+                <td>
+                  <span class="badge"
+                        [ngClass]="getStatusClass(order.status)">
+                    {{ getStatusLabel(order.status) }}
+                  </span>
+                </td>
+
+                <td class="text-end">
+                  {{
+                        order.totalAmount
+                          | currency:'EUR':'symbol':'1.2-2':'it-IT'
+                  }}
+                </td>
+              </tr>
+              } @empty {
+              <tr>
+                <td colspan="5"
+                    class="text-center text-secondary py-4">
+                  Nessun ordine recente.
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock basso -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-white">
+      <strong>Prodotti con stock basso</strong>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Codice</th>
+            <th>Prodotto</th>
+            <th class="text-end">Giacenza</th>
+            <th class="text-end">Azione</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (
+          product of dashboard()!.lowStockProducts;
+          track product.id
+          ) {
+          <tr>
+            <td>
+              <strong>{{ product.code }}</strong>
+            </td>
+
+            <td>
+              {{ product.name }}
+            </td>
+
+            <td class="text-end">
+              <span class="badge"
+                    [class.text-bg-danger]="product.stockQuantity === 0"
+                    [class.text-bg-warning]="product.stockQuantity > 0">
+                {{ product.stockQuantity }}
+              </span>
+            </td>
+
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary"
+                      type="button"
+                      (click)="openProduct(product.id)">
+                Apri prodotto
+              </button>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="4"
+                class="text-center text-secondary py-4">
+              Nessun prodotto con stock basso.
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+</div>

@@ -1,0 +1,23 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+  <div>
+    <h1 class="h3 mb-1">Prodotti</h1>
+
+    <p class="text-secondary mb-0">
+      Gestione catalogo e giacenze · {{ totalItems }} elementi
+    </p>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-secondary"
+            type="button"
+            (click)="refreshRequested.emit()">
+      Aggiorna
+    </button>
+
+    <button class="btn btn-primary"
+            type="button"
+            (click)="createRequested.emit()">
+      Nuovo prodotto
+    </button>
+  </div>
+</div>

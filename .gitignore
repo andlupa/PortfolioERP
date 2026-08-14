@@ -3,6 +3,13 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+# .NET build output
+bin/
+obj/
+
+# Node / Angular dependencies
+node_modules/
+
 # dotenv files
 **/appsettings.Local.json
 .env

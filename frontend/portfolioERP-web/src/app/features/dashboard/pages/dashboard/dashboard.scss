@@ -1,0 +1,36 @@
+.clickable-row {
+  cursor: pointer;
+}
+
+  .clickable-row:hover {
+    --bs-table-bg-state: var(--bs-tertiary-bg);
+  }
+
+.card {
+  border: 0;
+}
+
+.display-6 {
+  font-size: 2rem;
+}
+
+.chart-container {
+  position: relative;
+  height: 260px;
+  width: 100%;
+}
+
+.revenue-chart-container {
+  position: relative;
+  height: 320px;
+  width: 100%;
+}
+
+.dashboard-kpi {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+  .dashboard-kpi:hover {
+    transform: translateY(-2px);
+  }

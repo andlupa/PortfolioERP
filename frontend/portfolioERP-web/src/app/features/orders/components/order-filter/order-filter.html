@@ -1,0 +1,80 @@
+<form class="row g-3" (ngSubmit)="apply()">
+  <div class="col-lg-4">
+    <label class="form-label" for="order-search">
+      Ricerca
+    </label>
+
+    <input id="order-search"
+           class="form-control"
+           type="search"
+           name="search"
+           [(ngModel)]="search"
+           placeholder="Numero ordine o cliente" />
+  </div>
+
+  <div class="col-lg-2">
+    <label class="form-label" for="order-status">
+      Stato
+    </label>
+
+    <select id="order-status"
+            class="form-select"
+            name="status"
+            [(ngModel)]="status">
+      <option [ngValue]="null">Tutti</option>
+      <option [ngValue]="OrderStatus.Draft">Bozza</option>
+      <option [ngValue]="OrderStatus.Confirmed">
+        Confermato
+      </option>
+      <option [ngValue]="OrderStatus.Processing">
+        In lavorazione
+      </option>
+      <option [ngValue]="OrderStatus.Shipped">
+        Spedito
+      </option>
+      <option [ngValue]="OrderStatus.Completed">
+        Completato
+      </option>
+      <option [ngValue]="OrderStatus.Cancelled">
+        Annullato
+      </option>
+    </select>
+  </div>
+
+  <div class="col-lg-2">
+    <label class="form-label" for="date-from">
+      Dal
+    </label>
+
+    <input id="date-from"
+           class="form-control"
+           type="date"
+           name="dateFrom"
+           [(ngModel)]="dateFrom" />
+  </div>
+
+  <div class="col-lg-2">
+    <label class="form-label" for="date-to">
+      Al
+    </label>
+
+    <input id="date-to"
+           class="form-control"
+           type="date"
+           name="dateTo"
+           [(ngModel)]="dateTo" />
+  </div>
+
+  <div class="col-lg-2 d-flex align-items-end gap-2">
+    <button class="btn btn-primary flex-fill"
+            type="submit">
+      Applica
+    </button>
+
+    <button class="btn btn-outline-secondary flex-fill"
+            type="button"
+            (click)="reset()">
+      Azzera
+    </button>
+  </div>
+</form>

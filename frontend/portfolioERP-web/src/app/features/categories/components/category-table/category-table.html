@@ -1,0 +1,78 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Descrizione</th>
+        <th>Stato</th>
+        <th>Data creazione</th>
+        <th class="text-end">Azioni</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (category of categories; track category.id) {
+      <tr>
+        <td>
+          <strong>{{ category.name }}</strong>
+        </td>
+
+        <td>
+          {{ category.description || '—' }}
+        </td>
+
+        <td>
+          @if (category.isActive) {
+          <span class="badge text-bg-success">
+            Attiva
+          </span>
+          } @else {
+          <span class="badge text-bg-secondary">
+            Inattiva
+          </span>
+          }
+        </td>
+
+        <td>
+          {{ category.createdAtUtc | date:'dd/MM/yyyy' }}
+        </td>
+
+        <td class="text-end">
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary"
+                    type="button"
+                    (click)="edit(category.id)">
+              Modifica
+            </button>
+
+            @if (category.isActive) {
+            <button class="btn btn-outline-danger"
+                    type="button"
+                    [disabled]="
+                    deactivatingCategoryId === category.id
+                  "
+                    (click)="deactivate(category)">
+              @if (
+              deactivatingCategoryId === category.id
+              ) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+              Disattivazione...
+              } @else {
+              Disattiva
+              }
+            </button>
+            }
+          </div>
+        </td>
+      </tr>
+      } @empty {
+      <tr>
+        <td colspan="5"
+            class="text-center text-secondary py-5">
+          Nessuna categoria trovata.
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>

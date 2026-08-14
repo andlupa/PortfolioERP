@@ -1,0 +1,24 @@
+@if (visible) {
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <div class="toast show border-0"
+       [class.text-bg-success]="type === 'success'"
+       [class.text-bg-danger]="type === 'danger'"
+       [class.text-bg-warning]="type === 'warning'"
+       [class.text-bg-info]="type === 'info'"
+       role="alert"
+       aria-live="assertive"
+       aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ message }}
+      </div>
+
+      <button class="btn-close me-2 m-auto"
+              [class.btn-close-white]="type !== 'warning'"
+              type="button"
+              aria-label="Chiudi"
+              (click)="close()"></button>
+    </div>
+  </div>
+</div>
+}

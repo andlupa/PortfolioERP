@@ -1,0 +1,65 @@
+<form class="row g-3" (ngSubmit)="apply()">
+  <div class="col-lg-4">
+    <label class="form-label" for="customer-search">
+      Ricerca
+    </label>
+
+    <input id="customer-search"
+           class="form-control"
+           type="search"
+           name="search"
+           [(ngModel)]="search"
+           placeholder="Codice, azienda, email, CF o P.IVA" />
+  </div>
+
+  <div class="col-lg-2">
+    <label class="form-label" for="customer-city">
+      Città
+    </label>
+
+    <input id="customer-city"
+           class="form-control"
+           type="text"
+           name="city"
+           [(ngModel)]="city" />
+  </div>
+
+  <div class="col-lg-2">
+    <label class="form-label" for="customer-country">
+      Paese
+    </label>
+
+    <input id="customer-country"
+           class="form-control"
+           type="text"
+           name="country"
+           [(ngModel)]="country" />
+  </div>
+
+  <div class="col-lg-2">
+    <label class="form-label" for="customer-status">
+      Stato
+    </label>
+
+    <select id="customer-status"
+            class="form-select"
+            name="status"
+            [(ngModel)]="status">
+      <option value="active">Attivi</option>
+      <option value="inactive">Inattivi</option>
+      <option value="all">Tutti</option>
+    </select>
+  </div>
+
+  <div class="col-lg-2 d-flex align-items-end gap-2">
+    <button class="btn btn-primary flex-fill" type="submit">
+      Applica
+    </button>
+
+    <button class="btn btn-outline-secondary flex-fill"
+            type="button"
+            (click)="reset()">
+      Azzera
+    </button>
+  </div>
+</form>

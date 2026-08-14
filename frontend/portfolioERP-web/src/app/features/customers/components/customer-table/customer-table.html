@@ -1,0 +1,130 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0">
+    <thead>
+      <tr>
+        <th>
+          <button class="sort-button"
+                  type="button"
+                  (click)="changeSorting('code')">
+            Codice
+            @if (sortBy === 'code') {
+            <span>{{ descending ? '↓' : '↑' }}</span>
+            }
+          </button>
+        </th>
+
+        <th>
+          <button class="sort-button"
+                  type="button"
+                  (click)="changeSorting('companyName')">
+            Ragione sociale
+            @if (sortBy === 'companyName') {
+            <span>{{ descending ? '↓' : '↑' }}</span>
+            }
+          </button>
+        </th>
+
+        <th>
+          <button class="sort-button"
+                  type="button"
+                  (click)="changeSorting('email')">
+            Email
+            @if (sortBy === 'email') {
+            <span>{{ descending ? '↓' : '↑' }}</span>
+            }
+          </button>
+        </th>
+
+        <th>
+          <button class="sort-button"
+                  type="button"
+                  (click)="changeSorting('city')">
+            Città
+            @if (sortBy === 'city') {
+            <span>{{ descending ? '↓' : '↑' }}</span>
+            }
+          </button>
+        </th>
+
+        <th>Stato</th>
+        <th class="text-end">Azioni</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (customer of customers; track customer.id) {
+      <tr>
+        <td>
+          <strong>{{ customer.customerCode }}</strong>
+        </td>
+
+        <td>
+          <div>{{ customer.companyName }}</div>
+
+          @if (customer.firstName || customer.lastName) {
+          <small class="text-secondary">
+            {{ customer.firstName }}
+            {{ customer.lastName }}
+          </small>
+          }
+        </td>
+
+        <td>
+          <a [href]="'mailto:' + customer.email">
+            {{ customer.email }}
+          </a>
+        </td>
+
+        <td>
+          {{ customer.city || '—' }}
+          @if (customer.province) {
+          <span>({{ customer.province }})</span>
+          }
+        </td>
+
+        <td>
+          @if (customer.isActive) {
+          <span class="badge text-bg-success">Attivo</span>
+          } @else {
+          <span class="badge text-bg-secondary">Inattivo</span>
+          }
+        </td>
+
+        <td class="text-end">
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary"
+                    type="button"
+                    (click)="edit(customer.id)">
+              Modifica
+            </button>
+
+            @if (customer.isActive) {
+            <button class="btn btn-outline-danger"
+                    type="button"
+                    [disabled]="
+                    deactivatingCustomerId === customer.id
+                  "
+                    (click)="deactivate(customer)">
+              @if (
+              deactivatingCustomerId === customer.id
+              ) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+              Disattivazione...
+              } @else {
+              Disattiva
+              }
+            </button>
+            }
+          </div>
+        </td>
+      </tr>
+      } @empty {
+      <tr>
+        <td colspan="6" class="text-center py-5 text-secondary">
+          Nessun cliente trovato.
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>

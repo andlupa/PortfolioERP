@@ -1,0 +1,387 @@
+<div class="container-fluid">
+  @if (loading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+
+    <p class="text-secondary mt-3">
+      Caricamento ordine...
+    </p>
+  </div>
+  } @else if (error()) {
+  <div class="alert alert-danger">
+    {{ error() }}
+  </div>
+
+  <a class="btn btn-outline-secondary"
+     routerLink="/orders">
+    Torna agli ordini
+  </a>
+  } @else if (order()) {
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <div class="d-flex align-items-center gap-3">
+        <h1 class="h3 mb-0">
+          {{ order()!.orderNumber }}
+        </h1>
+
+        <span class="badge"
+              [ngClass]="statusClass">
+          {{ statusLabel }}
+        </span>
+      </div>
+
+      <p class="text-secondary mt-2 mb-0">
+        Ordine del
+        {{
+            order()!.orderDate
+              | date:'dd/MM/yyyy HH:mm'
+        }}
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-secondary"
+         routerLink="/orders">
+        Torna agli ordini
+      </a>
+
+      @if (canConfirm) {
+      <button class="btn btn-success"
+              type="button"
+              (click)="requestConfirm()">
+        Conferma ordine
+      </button>
+      }
+
+      @if (canCancel) {
+      <button class="btn btn-outline-danger"
+              type="button"
+              (click)="requestCancel()">
+        Annulla ordine
+      </button>
+      }
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white">
+          <strong>Cliente</strong>
+        </div>
+
+        <div class="card-body">
+          <h2 class="h5">
+            {{ order()!.customerName }}
+          </h2>
+
+          <div class="text-secondary">
+            ID cliente:
+            {{ order()!.customerId }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white">
+          <strong>Informazioni ordine</strong>
+        </div>
+
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-5">
+              Data ordine
+            </dt>
+
+            <dd class="col-sm-7">
+              {{
+                  order()!.orderDate
+                    | date:'dd/MM/yyyy HH:mm'
+              }}
+            </dd>
+
+            <dt class="col-sm-5">
+              Creato
+            </dt>
+
+            <dd class="col-sm-7">
+              {{
+                  order()!.createdAtUtc
+                    | date:'dd/MM/yyyy HH:mm'
+              }}
+            </dd>
+
+            @if (order()!.updatedAtUtc) {
+            <dt class="col-sm-5">
+              Ultima modifica
+            </dt>
+
+            <dd class="col-sm-7">
+              {{
+                    order()!.updatedAtUtc
+                      | date:'dd/MM/yyyy HH:mm'
+              }}
+            </dd>
+            }
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (order()!.notes) {
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+      <strong>Note</strong>
+    </div>
+
+    <div class="card-body">
+      {{ order()!.notes }}
+    </div>
+  </div>
+  }
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+      <strong>Righe ordine</strong>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Prodotto</th>
+            <th class="text-end">
+              Prezzo
+            </th>
+            <th class="text-end">
+              Quantità
+            </th>
+            <th class="text-end">
+              Sconto %
+            </th>
+            <th class="text-end">
+              Sconto
+            </th>
+            <th class="text-end">
+              Imponibile
+            </th>
+            <th class="text-end">
+              IVA %
+            </th>
+            <th class="text-end">
+              IVA
+            </th>
+            <th class="text-end">
+              Totale
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (
+          line of order()!.lines;
+          track line.id
+          ) {
+          <tr>
+            <td>
+              <strong>
+                {{ line.productCode }}
+              </strong>
+
+              <div>
+                {{ line.productName }}
+              </div>
+            </td>
+
+            <td class="text-end">
+              {{
+                    line.unitPrice
+                      | currency:
+                        'EUR':
+                        'symbol':
+                        '1.2-2':
+                        'it-IT'
+              }}
+            </td>
+
+            <td class="text-end">
+              {{ line.quantity }}
+            </td>
+
+            <td class="text-end">
+              {{
+                    line.discountPercentage
+                      | number:'1.0-2'
+              }}%
+            </td>
+
+            <td class="text-end">
+              {{
+                    line.discountAmount
+                      | currency:
+                        'EUR':
+                        'symbol':
+                        '1.2-2':
+                        'it-IT'
+              }}
+            </td>
+
+            <td class="text-end">
+              {{
+                    line.netAmount
+                      | currency:
+                        'EUR':
+                        'symbol':
+                        '1.2-2':
+                        'it-IT'
+              }}
+            </td>
+
+            <td class="text-end">
+              {{
+                    line.vatPercentage
+                      | number:'1.0-2'
+              }}%
+            </td>
+
+            <td class="text-end">
+              {{
+                    line.vatAmount
+                      | currency:
+                        'EUR':
+                        'symbol':
+                        '1.2-2':
+                        'it-IT'
+              }}
+            </td>
+
+            <td class="text-end fw-semibold">
+              {{
+                    line.totalAmount
+                      | currency:
+                        'EUR':
+                        'symbol':
+                        '1.2-2':
+                        'it-IT'
+              }}
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="row justify-content-end">
+    <div class="col-md-7 col-lg-5 col-xl-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <strong>Riepilogo economico</strong>
+        </div>
+
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2">
+            <span>Subtotale</span>
+
+            <strong>
+              {{
+                  order()!.subtotal
+                    | currency:
+                      'EUR':
+                      'symbol':
+                      '1.2-2':
+                      'it-IT'
+              }}
+            </strong>
+          </div>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span>Sconti</span>
+
+            <strong>
+              −
+              {{
+                  order()!.discountAmount
+                    | currency:
+                      'EUR':
+                      'symbol':
+                      '1.2-2':
+                      'it-IT'
+              }}
+            </strong>
+          </div>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span>Imponibile</span>
+
+            <strong>
+              {{
+                  (
+                    order()!.subtotal -
+                    order()!.discountAmount
+                  )
+                    | currency:
+                      'EUR':
+                      'symbol':
+                      '1.2-2':
+                      'it-IT'
+              }}
+            </strong>
+          </div>
+
+          <div class="d-flex justify-content-between mb-3">
+            <span>IVA</span>
+
+            <strong>
+              {{
+                  order()!.taxAmount
+                    | currency:
+                      'EUR':
+                      'symbol':
+                      '1.2-2':
+                      'it-IT'
+              }}
+            </strong>
+          </div>
+
+          <hr />
+
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fs-5">
+              Totale
+            </span>
+
+            <strong class="fs-3 text-primary">
+              {{
+                  order()!.totalAmount
+                    | currency:
+                      'EUR':
+                      'symbol':
+                      '1.2-2':
+                      'it-IT'
+              }}
+            </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>
+
+<app-confirm-dialog [open]="dialogOpen"
+                    [title]="dialogTitle"
+                    [message]="dialogMessage"
+                    [confirmText]="dialogConfirmText"
+                    [danger]="dialogDanger"
+                    [busy]="processing()"
+                    (confirmed)="executeAction()"
+                    (cancelled)="closeDialog()" />
+
+<app-toast [visible]="toastVisible()"
+           [message]="toastMessage()"
+           [type]="toastType()"
+           (closed)="closeToast()" />

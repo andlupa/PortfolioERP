@@ -1,0 +1,68 @@
+<div class="container-fluid">
+  <app-customer-toolbar [totalItems]="totalItems"
+                        (createRequested)="createCustomer()"
+                        (refreshRequested)="loadCustomers()" />
+
+  <div class="card shadow-sm mt-4">
+    <div class="card-body border-bottom">
+      <app-customer-filter (filtersApplied)="applyFilters($event)"
+                           (filtersReset)="resetFilters()" />
+    </div>
+
+    @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary"
+           role="status"></div>
+
+      <p class="text-secondary mt-3 mb-0">
+        Caricamento clienti...
+      </p>
+    </div>
+    } @else if (error()) {
+    <div class="card-body">
+      <div class="alert alert-danger mb-0">
+        {{ error() }}
+
+        <button class="btn btn-sm btn-outline-danger ms-3"
+                type="button"
+                (click)="loadCustomers()">
+          Riprova
+        </button>
+      </div>
+    </div>
+    } @else {
+    <app-customer-table [customers]="customers()"
+                        [sortBy]="sortBy"
+                        [descending]="descending"
+                        [deactivatingCustomerId]="
+          deactivatingCustomerId()
+        "
+                        (sortingChanged)="changeSorting($event)"
+                        (editRequested)="editCustomer($event)"
+                        (deactivateRequested)="
+          requestDeactivation($event)
+        " />
+
+    <div class="card-footer bg-white">
+      <app-customer-pagination [pageNumber]="pageNumber"
+                               [totalPages]="totalPages"
+                               [totalItems]="totalItems"
+                               (pageChanged)="changePage($event)" />
+    </div>
+    }
+  </div>
+</div>
+
+<app-confirm-dialog [open]="customerToDeactivate() !== null"
+                    title="Disattiva cliente"
+                    [message]="deactivationMessage"
+                    confirmText="Disattiva"
+                    [danger]="true"
+                    [busy]="deactivatingCustomerId() !== null"
+                    (confirmed)="confirmDeactivation()"
+                    (cancelled)="cancelDeactivation()" />
+
+<app-toast [visible]="toastVisible()"
+           [message]="toastMessage()"
+           [type]="toastType()"
+           (closed)="closeToast()" />

@@ -1,0 +1,275 @@
+<div class="mb-4">
+  <h1 class="h3 mb-1">
+    {{ pageTitle }}
+  </h1>
+
+  <p class="text-secondary mb-0">
+    Inserisci i dati anagrafici del fornitore.
+  </p>
+</div>
+
+@if (error()) {
+<div class="alert alert-danger">
+  {{ error() }}
+</div>
+}
+
+@if (loading()) {
+
+<div class="text-center py-5">
+  <div class="spinner-border"></div>
+</div>
+
+} @else {
+
+<div class="card shadow-sm">
+  <div class="card-body">
+
+    <form [formGroup]="form"
+          (ngSubmit)="save()"
+          novalidate>
+
+      <div class="row g-3">
+
+        <!-- Codice -->
+
+        <div class="col-md-4">
+          <label for="supplierCode"
+                 class="form-label">
+            Codice fornitore *
+          </label>
+
+          <input id="supplierCode"
+                 type="text"
+                 class="form-control"
+                 formControlName="supplierCode"
+                 [class.is-invalid]="
+                form.controls.supplierCode.invalid &&
+                form.controls.supplierCode.touched
+              " />
+
+          <div class="invalid-feedback">
+            Il codice fornitore è obbligatorio.
+          </div>
+        </div>
+
+        <!-- Ragione sociale -->
+
+        <div class="col-md-8">
+          <label for="companyName"
+                 class="form-label">
+            Ragione sociale *
+          </label>
+
+          <input id="companyName"
+                 type="text"
+                 class="form-control"
+                 formControlName="companyName"
+                 [class.is-invalid]="
+                form.controls.companyName.invalid &&
+                form.controls.companyName.touched
+              " />
+
+          <div class="invalid-feedback">
+            La ragione sociale è obbligatoria.
+          </div>
+        </div>
+
+        <!-- Contatto -->
+
+        <div class="col-md-6">
+          <label for="contactName"
+                 class="form-label">
+            Persona di contatto
+          </label>
+
+          <input id="contactName"
+                 type="text"
+                 class="form-control"
+                 formControlName="contactName" />
+        </div>
+
+        <!-- Email -->
+
+        <div class="col-md-6">
+          <label for="email"
+                 class="form-label">
+            Email *
+          </label>
+
+          <input id="email"
+                 type="email"
+                 class="form-control"
+                 formControlName="email"
+                 [class.is-invalid]="
+                form.controls.email.invalid &&
+                form.controls.email.touched
+              " />
+
+          <div class="invalid-feedback">
+            Inserisci un indirizzo email valido.
+          </div>
+        </div>
+
+        <!-- P.IVA -->
+
+        <div class="col-md-4">
+          <label for="vatNumber"
+                 class="form-label">
+            Partita IVA
+          </label>
+
+          <input id="vatNumber"
+                 type="text"
+                 class="form-control"
+                 formControlName="vatNumber" />
+        </div>
+
+        <!-- Codice fiscale -->
+
+        <div class="col-md-4">
+          <label for="taxCode"
+                 class="form-label">
+            Codice fiscale
+          </label>
+
+          <input id="taxCode"
+                 type="text"
+                 class="form-control"
+                 formControlName="taxCode" />
+        </div>
+
+        <!-- Telefono -->
+
+        <div class="col-md-4">
+          <label for="phone"
+                 class="form-label">
+            Telefono
+          </label>
+
+          <input id="phone"
+                 type="text"
+                 class="form-control"
+                 formControlName="phone" />
+        </div>
+
+        <!-- Indirizzo -->
+
+        <div class="col-md-8">
+          <label for="address"
+                 class="form-label">
+            Indirizzo
+          </label>
+
+          <input id="address"
+                 type="text"
+                 class="form-control"
+                 formControlName="address" />
+        </div>
+
+        <!-- CAP -->
+
+        <div class="col-md-4">
+          <label for="postalCode"
+                 class="form-label">
+            CAP
+          </label>
+
+          <input id="postalCode"
+                 type="text"
+                 class="form-control"
+                 formControlName="postalCode" />
+        </div>
+
+        <!-- Città -->
+
+        <div class="col-md-5">
+          <label for="city"
+                 class="form-label">
+            Città
+          </label>
+
+          <input id="city"
+                 type="text"
+                 class="form-control"
+                 formControlName="city" />
+        </div>
+
+        <!-- Provincia -->
+
+        <div class="col-md-2">
+          <label for="province"
+                 class="form-label">
+            Provincia
+          </label>
+
+          <input id="province"
+                 type="text"
+                 class="form-control"
+                 formControlName="province" />
+        </div>
+
+        <!-- Paese -->
+
+        <div class="col-md-5">
+          <label for="country"
+                 class="form-label">
+            Paese *
+          </label>
+
+          <input id="country"
+                 type="text"
+                 class="form-control"
+                 formControlName="country"
+                 [class.is-invalid]="
+                form.controls.country.invalid &&
+                form.controls.country.touched
+              " />
+
+          <div class="invalid-feedback">
+            Il paese è obbligatorio.
+          </div>
+        </div>
+
+        @if (isEditMode) {
+        <div class="col-md-2 d-flex align-items-end">
+          <div class="form-check form-switch mb-2">
+            <input id="isActive"
+                   type="checkbox"
+                   class="form-check-input"
+                   formControlName="isActive" />
+
+            <label for="isActive"
+                   class="form-check-label">
+              Fornitore attivo
+            </label>
+          </div>
+        </div>
+        }
+
+      </div>
+
+      <div class="d-flex justify-content-end
+                 gap-2 mt-4">
+        <a routerLink="/suppliers"
+           class="btn btn-outline-secondary">
+          Annulla
+        </a>
+
+        <button type="submit"
+                class="btn btn-primary"
+                [disabled]="saving()">
+          @if (saving()) {
+          <span class="spinner-border
+                       spinner-border-sm me-2"></span>
+          }
+
+          {{ isEditMode ? 'Salva modifiche' : 'Crea fornitore' }}
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+}

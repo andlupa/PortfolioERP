@@ -1,0 +1,139 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0">
+    <thead>
+      <tr>
+        <th>
+          <button class="sort-button"
+                  type="button"
+                  (click)="changeSorting('code')">
+            Codice
+            @if (sortBy === 'code') {
+            <span>{{ descending ? '↓' : '↑' }}</span>
+            }
+          </button>
+        </th>
+
+        <th>
+          <button class="sort-button"
+                  type="button"
+                  (click)="changeSorting('name')">
+            Nome
+            @if (sortBy === 'name') {
+            <span>{{ descending ? '↓' : '↑' }}</span>
+            }
+          </button>
+        </th>
+
+        <th>
+          <button class="sort-button"
+                  type="button"
+                  (click)="changeSorting('category')">
+            Categoria
+            @if (sortBy === 'category') {
+            <span>{{ descending ? '↓' : '↑' }}</span>
+            }
+          </button>
+        </th>
+
+        <th class="text-end">
+          <button class="sort-button"
+                  type="button"
+                  (click)="changeSorting('price')">
+            Prezzo
+            @if (sortBy === 'price') {
+            <span>{{ descending ? '↓' : '↑' }}</span>
+            }
+          </button>
+        </th>
+
+        <th class="text-end">
+          <button class="sort-button"
+                  type="button"
+                  (click)="changeSorting('stockQuantity')">
+            Giacenza
+            @if (sortBy === 'stockQuantity') {
+            <span>{{ descending ? '↓' : '↑' }}</span>
+            }
+          </button>
+        </th>
+
+        <th>Stato</th>
+        <th class="text-end">Azioni</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (product of products; track product.id) {
+      <tr>
+        <td>
+          <strong>{{ product.code }}</strong>
+        </td>
+
+        <td>
+          <div>{{ product.name }}</div>
+
+          @if (product.description) {
+          <small class="text-secondary">
+            {{ product.description }}
+          </small>
+          }
+        </td>
+
+        <td>{{ product.categoryName }}</td>
+
+        <td class="text-end">
+          {{ product.price | currency:'EUR':'symbol':'1.2-2':'it-IT' }}
+        </td>
+
+        <td class="text-end">
+          <span [class.text-danger]="product.stockQuantity === 0"
+                [class.fw-semibold]="product.stockQuantity === 0">
+            {{ product.stockQuantity }}
+          </span>
+        </td>
+
+        <td>
+          @if (product.isActive) {
+          <span class="badge text-bg-success">Attivo</span>
+          } @else {
+          <span class="badge text-bg-secondary">Inattivo</span>
+          }
+        </td>
+
+        <td class="text-end">
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary"
+                    type="button"
+                    (click)="edit(product.id)">
+              Modifica
+            </button>
+
+            @if (product.isActive) {
+            <button class="btn btn-outline-danger"
+                    type="button"
+                    [disabled]="deactivatingProductId === product.id"
+                    (click)="deactivate(product)">
+              @if (deactivatingProductId === product.id) {
+              <span class="spinner-border spinner-border-sm me-1"
+                    aria-hidden="true"></span>
+
+              Disattivazione...
+              } @else {
+              Disattiva
+              }
+            </button>
+            }
+
+          </div>
+        </td>
+      </tr>
+      } @empty {
+      <tr>
+        <td colspan="7" class="text-center text-secondary py-5">
+          Nessun prodotto trovato.
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>

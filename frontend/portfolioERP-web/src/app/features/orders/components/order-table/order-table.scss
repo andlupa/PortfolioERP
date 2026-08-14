@@ -1,0 +1,15 @@
+.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+}
+
+  .sort-button:hover {
+    color: var(--bs-primary);
+  }

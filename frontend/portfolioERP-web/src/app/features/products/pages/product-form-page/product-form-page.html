@@ -1,0 +1,262 @@
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">{{ pageTitle }}</h1>
+
+      <p class="text-secondary mb-0">
+        Inserisci i dati del prodotto
+      </p>
+    </div>
+
+    <a class="btn btn-outline-secondary"
+       routerLink="/products">
+      Torna ai prodotti
+    </a>
+  </div>
+
+  @if (loading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+    <p class="text-secondary mt-3">
+      Caricamento prodotto...
+    </p>
+  </div>
+  } @else {
+  <div class="card shadow-sm">
+    <div class="card-body">
+      @if (error()) {
+      <div class="alert alert-danger">
+        {{ error() }}
+      </div>
+      }
+
+      <form [formGroup]="form"
+            (ngSubmit)="save()"
+            novalidate>
+        <div class="row g-4">
+          <div class="col-md-4">
+            <label class="form-label" for="code">
+              Codice
+            </label>
+
+            <input id="code"
+                   class="form-control"
+                   [class.is-invalid]="
+                      form.controls.code.invalid &&
+                      form.controls.code.touched
+                    "
+                   type="text"
+                   formControlName="code" />
+
+            <div class="invalid-feedback">
+              @if (form.controls.code.hasError('required')) {
+              Il codice è obbligatorio.
+              } @else if (
+              form.controls.code.hasError('maxlength')
+              ) {
+              Il codice non può superare 50 caratteri.
+              } @else if (
+              form.controls.code.hasError('backend')
+              ) {
+              {{ form.controls.code.getError('backend') }}
+              }
+            </div>
+          </div>
+
+          <div class="col-md-8">
+            <label class="form-label" for="name">
+              Nome
+            </label>
+
+            <input id="name"
+                   class="form-control"
+                   [class.is-invalid]="
+                  form.controls.name.invalid &&
+                  form.controls.name.touched
+                "
+                   type="text"
+                   formControlName="name" />
+
+            <div class="invalid-feedback">
+              @if (form.controls.name.hasError('required')) {
+              Il nome è obbligatorio.
+              } @else if (
+              form.controls.name.hasError('maxlength')
+              ) {
+              Il nome non può superare 150 caratteri.
+              } @else if (
+              form.controls.name.hasError('backend')
+              ) {
+              {{ form.controls.name.getError('backend') }}
+              }
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label" for="description">
+              Descrizione
+            </label>
+
+            <textarea id="description"
+                      class="form-control"
+                      rows="4"
+                      formControlName="description"
+                      [class.is-invalid]="
+                  form.controls.description.invalid &&
+                  form.controls.description.touched
+                "></textarea>
+
+            <div class="invalid-feedback">
+              @if (
+              form.controls.description.hasError('maxlength')
+              ) {
+              La descrizione non può superare 1000 caratteri.
+              } @else if (
+              form.controls.description.hasError('backend')
+              ) {
+              {{ form.controls.description.getError('backend') }}
+              }
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label" for="categoryId">
+              Categoria
+            </label>
+
+            <select id="categoryId"
+                    class="form-select"
+                    formControlName="categoryId"
+                    [class.is-invalid]="
+                  form.controls.categoryId.invalid &&
+                  form.controls.categoryId.touched
+                ">
+              <option [ngValue]="0">
+                Seleziona una categoria
+              </option>
+
+              @for (category of categories(); track category.id) {
+              <option [ngValue]="category.id">
+                {{ category.name }}
+              </option>
+              }
+            </select>
+
+            <div class="invalid-feedback">
+              Seleziona una categoria valida.
+            </div>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label" for="price">
+              Prezzo
+            </label>
+
+            <div class="input-group">
+              <span class="input-group-text">€</span>
+
+              <input id="price"
+                     class="form-control"
+                     type="number"
+                     min="0"
+                     step="0.01"
+                     formControlName="price"
+                     [class.is-invalid]="
+                    form.controls.price.invalid &&
+                    form.controls.price.touched
+                  " />
+            </div>
+
+            @if (
+            form.controls.price.invalid &&
+            form.controls.price.touched
+            ) {
+            <div class="text-danger small mt-1">
+              Inserisci un prezzo valido.
+            </div>
+            }
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label" for="vatPercentage">
+              IVA %
+            </label>
+
+            <input id="vatPercentage"
+                   class="form-control"
+                   type="number"
+                   min="0"
+                   max="100"
+                   step="0.01"
+                   formControlName="vatPercentage"
+                   [class.is-invalid]="
+                  form.controls.vatPercentage.invalid &&
+                  form.controls.vatPercentage.touched
+                " />
+
+            <div class="invalid-feedback">
+              L’IVA deve essere compresa tra 0 e 100.
+            </div>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label" for="stockQuantity">
+              Giacenza
+            </label>
+
+            <input id="stockQuantity"
+                   class="form-control"
+                   type="number"
+                   min="0"
+                   step="1"
+                   formControlName="stockQuantity"
+                   [class.is-invalid]="
+                  form.controls.stockQuantity.invalid &&
+                  form.controls.stockQuantity.touched
+                " />
+
+            <div class="invalid-feedback">
+              La giacenza non può essere negativa.
+            </div>
+          </div>
+
+          @if (isEditMode) {
+          <div class="col-md-2 d-flex align-items-end">
+            <div class="form-check form-switch mb-2">
+              <input id="isActive"
+                     class="form-check-input"
+                     type="checkbox"
+                     formControlName="isActive" />
+
+              <label class="form-check-label"
+                     for="isActive">
+                Prodotto attivo
+              </label>
+            </div>
+          </div>
+          }
+        </div>
+
+        <hr class="my-4" />
+
+        <div class="d-flex justify-content-end gap-2">
+          <a class="btn btn-outline-secondary"
+             routerLink="/products">
+            Annulla
+          </a>
+
+          <button class="btn btn-primary"
+                  type="submit"
+                  [disabled]="saving()">
+            @if (saving()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            }
+
+            {{ isEditMode ? 'Salva modifiche' : 'Crea prodotto' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+</div>

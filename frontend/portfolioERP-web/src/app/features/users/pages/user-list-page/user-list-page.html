@@ -1,0 +1,137 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1">
+      Gestione utenti
+    </h1>
+
+    <p class="text-secondary mb-0">
+      Gestisci utenti, ruoli e accesso al sistema.
+    </p>
+  </div>
+
+  <a routerLink="/users/new"
+      class="btn btn-primary">
+    Nuovo utente
+  </a>
+   
+</div>
+
+@if (loading()) {
+<div class="text-center py-5">
+  <div class="spinner-border"></div>
+</div>
+}
+
+@if (error()) {
+<div class="alert alert-danger">
+  {{ error() }}
+</div>
+}
+
+@if (!loading() && !error()) {
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+
+      <thead class="table-light">
+        <tr>
+          <th>Utente</th>
+          <th>Email</th>
+          <th>Ruolo</th>
+          <th>Stato</th>
+          <th>Creato il</th>
+          <th class="text-end">Azioni</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (user of users(); track user.id) {
+        <tr>
+          <td>
+            <strong>
+              {{ user.firstName }}
+              {{ user.lastName }}
+            </strong>
+
+            <div class="small text-secondary">
+              {{ user.username }}
+            </div>
+          </td>
+
+          <td>
+            {{ user.email }}
+          </td>
+
+          <td>
+            <select class="form-select form-select-sm role-select"
+                    [value]="user.role"
+                    (change)="
+                    changeRole(
+                      user,
+                      $any($event.target).value
+                    )
+                  ">
+              <option value="User">
+                User
+              </option>
+
+              <option value="Admin">
+                Admin
+              </option>
+            </select>
+          </td>
+
+          <td>
+            @if (user.isActive) {
+            <span class="badge text-bg-success">
+              Attivo
+            </span>
+            } @else {
+            <span class="badge text-bg-secondary">
+              Disattivato
+            </span>
+            }
+          </td>
+
+          <td>
+            {{
+                  user.createdAt
+                    | date:'dd/MM/yyyy HH:mm'
+            }}
+          </td>
+
+          <td class="text-end">
+            <button class="btn btn-sm"
+                    [class.btn-outline-danger]="user.isActive"
+                    [class.btn-outline-success]="!user.isActive"
+                    type="button"
+                    [disabled]="isCurrentUser(user) && user.isActive"
+                    (click)="changeStatus(user)">
+              {{
+                    user.isActive
+                      ? 'Disattiva'
+                      : 'Riattiva'
+              }}
+            </button>
+
+            @if (isCurrentUser(user)) {
+            <div class="small text-secondary mt-1">
+              Utente corrente
+            </div>
+            }
+          </td>
+        </tr>
+        } @empty {
+        <tr>
+          <td colspan="6"
+              class="text-center text-secondary py-4">
+            Nessun utente trovato.
+          </td>
+        </tr>
+        }
+      </tbody>
+
+    </table>
+  </div>
+</div>
+}

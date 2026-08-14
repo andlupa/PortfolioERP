@@ -1,0 +1,61 @@
+<form class="row g-3" (ngSubmit)="apply()">
+  <div class="col-lg-4">
+    <label class="form-label" for="product-search">
+      Ricerca
+    </label>
+
+    <input id="product-search"
+           class="form-control"
+           type="text"
+           name="search"
+           [(ngModel)]="search"
+           (ngModelChange)="onSearchChanged($event)"
+           placeholder="Codice, nome o descrizione" />
+  </div>
+
+  <div class="col-lg-3">
+    <label class="form-label" for="product-category">
+      Categoria
+    </label>
+
+    <select id="product-category"
+            class="form-select"
+            name="categoryId"
+            [(ngModel)]="categoryId">
+      <option [ngValue]="null">Tutte le categorie</option>
+
+      @for (category of categories; track category.id) {
+      <option [ngValue]="category.id">
+        {{ category.name }}
+      </option>
+      }
+    </select>
+  </div>
+
+  <div class="col-lg-2">
+    <label class="form-label" for="product-status">
+      Stato
+    </label>
+
+    <select id="product-status"
+            class="form-select"
+            name="status"
+            [(ngModel)]="status">
+      <option value="active">Attivi</option>
+      <option value="inactive">Inattivi</option>
+      <option value="all">Tutti</option>
+    </select>
+  </div>
+
+  <div class="col-lg-3 d-flex align-items-end gap-2">
+    <button class="btn btn-primary flex-fill" type="submit">
+      Applica
+    </button>
+
+    <button class="btn btn-outline-secondary flex-fill"
+            type="button"
+            (click)="reset()">
+      Azzera
+    </button>
+  </div>
+</form>

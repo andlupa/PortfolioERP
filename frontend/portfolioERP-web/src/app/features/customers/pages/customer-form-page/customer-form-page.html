@@ -1,0 +1,282 @@
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">{{ pageTitle }}</h1>
+      <p class="text-secondary mb-0">
+        Inserisci i dati anagrafici del cliente
+      </p>
+    </div>
+
+    <a class="btn btn-outline-secondary"
+       routerLink="/customers">
+      Torna ai clienti
+    </a>
+  </div>
+
+  @if (loading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+    <p class="text-secondary mt-3">
+      Caricamento cliente...
+    </p>
+  </div>
+  } @else {
+  <div class="card shadow-sm">
+    <div class="card-body">
+      @if (error()) {
+      <div class="alert alert-danger">
+        {{ error() }}
+      </div>
+      }
+
+      <form [formGroup]="form"
+            (ngSubmit)="save()"
+            novalidate>
+        <div class="row g-4">
+          <div class="col-md-4">
+            <label class="form-label" for="customerCode">
+              Codice cliente
+            </label>
+
+            <input id="customerCode"
+                   class="form-control"
+                   type="text"
+                   formControlName="customerCode"
+                   [class.is-invalid]="
+                  form.controls.customerCode.invalid &&
+                  form.controls.customerCode.touched
+                " />
+
+            <div class="invalid-feedback">
+              @if (form.controls.customerCode.hasError('required')) {
+              Il codice cliente è obbligatorio.
+              } @else if (
+              form.controls.customerCode.hasError('maxlength')
+              ) {
+              Il codice non può superare 30 caratteri.
+              } @else if (
+              form.controls.customerCode.hasError('backend')
+              ) {
+              {{ form.controls.customerCode.getError('backend') }}
+              }
+            </div>
+          </div>
+
+          <div class="col-md-8">
+            <label class="form-label" for="companyName">
+              Ragione sociale
+            </label>
+
+            <input id="companyName"
+                   class="form-control"
+                   type="text"
+                   formControlName="companyName"
+                   [class.is-invalid]="
+                  form.controls.companyName.invalid &&
+                  form.controls.companyName.touched
+                " />
+
+            <div class="invalid-feedback">
+              @if (form.controls.companyName.hasError('required')) {
+              La ragione sociale è obbligatoria.
+              } @else if (
+              form.controls.companyName.hasError('maxlength')
+              ) {
+              La ragione sociale non può superare 200 caratteri.
+              } @else if (
+              form.controls.companyName.hasError('backend')
+              ) {
+              {{ form.controls.companyName.getError('backend') }}
+              }
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label" for="firstName">
+              Nome referente
+            </label>
+
+            <input id="firstName"
+                   class="form-control"
+                   type="text"
+                   formControlName="firstName" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label" for="lastName">
+              Cognome referente
+            </label>
+
+            <input id="lastName"
+                   class="form-control"
+                   type="text"
+                   formControlName="lastName" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label" for="taxCode">
+              Codice fiscale
+            </label>
+
+            <input id="taxCode"
+                   class="form-control"
+                   type="text"
+                   formControlName="taxCode" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label" for="vatNumber">
+              Partita IVA
+            </label>
+
+            <input id="vatNumber"
+                   class="form-control"
+                   type="text"
+                   formControlName="vatNumber" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label" for="email">
+              Email
+            </label>
+
+            <input id="email"
+                   class="form-control"
+                   type="email"
+                   formControlName="email"
+                   [class.is-invalid]="
+                  form.controls.email.invalid &&
+                  form.controls.email.touched
+                " />
+
+            <div class="invalid-feedback">
+              @if (form.controls.email.hasError('required')) {
+              L’email è obbligatoria.
+              } @else if (form.controls.email.hasError('email')) {
+              Inserisci un indirizzo email valido.
+              } @else if (
+              form.controls.email.hasError('backend')
+              ) {
+              {{ form.controls.email.getError('backend') }}
+              }
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label" for="phone">
+              Telefono
+            </label>
+
+            <input id="phone"
+                   class="form-control"
+                   type="text"
+                   formControlName="phone" />
+          </div>
+
+          <div class="col-12">
+            <label class="form-label" for="address">
+              Indirizzo
+            </label>
+
+            <input id="address"
+                   class="form-control"
+                   type="text"
+                   formControlName="address" />
+          </div>
+
+          <div class="col-md-5">
+            <label class="form-label" for="city">
+              Città
+            </label>
+
+            <input id="city"
+                   class="form-control"
+                   type="text"
+                   formControlName="city" />
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label" for="province">
+              Provincia
+            </label>
+
+            <input id="province"
+                   class="form-control"
+                   type="text"
+                   formControlName="province" />
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label" for="postalCode">
+              CAP
+            </label>
+
+            <input id="postalCode"
+                   class="form-control"
+                   type="text"
+                   formControlName="postalCode" />
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label" for="country">
+              Paese
+            </label>
+
+            <input id="country"
+                   class="form-control"
+                   type="text"
+                   formControlName="country"
+                   [class.is-invalid]="
+                  form.controls.country.invalid &&
+                  form.controls.country.touched
+                " />
+
+            <div class="invalid-feedback">
+              Il paese è obbligatorio.
+            </div>
+          </div>
+
+          @if (isEditMode) {
+          <div class="col-12">
+            <div class="form-check form-switch">
+              <input id="isActive"
+                     class="form-check-input"
+                     type="checkbox"
+                     formControlName="isActive" />
+
+              <label class="form-check-label"
+                     for="isActive">
+                Cliente attivo
+              </label>
+            </div>
+          </div>
+          }
+        </div>
+
+        <hr class="my-4" />
+
+        <div class="d-flex justify-content-end gap-2">
+          <a class="btn btn-outline-secondary"
+             routerLink="/customers">
+            Annulla
+          </a>
+
+          <button class="btn btn-primary"
+                  type="submit"
+                  [disabled]="saving()">
+            @if (saving()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            }
+
+            {{
+                isEditMode
+                  ? 'Salva modifiche'
+                  : 'Crea cliente'
+            }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+</div>

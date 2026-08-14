@@ -1,0 +1,176 @@
+<div class="mb-4">
+  <h1 class="h3 mb-1">
+    Nuovo utente
+  </h1>
+
+  <p class="text-secondary mb-0">
+    Crea un nuovo account per PortfolioERP.
+  </p>
+</div>
+
+@if (error()) {
+<div class="alert alert-danger">
+  {{ error() }}
+</div>
+}
+
+<div class="card shadow-sm">
+  <div class="card-body">
+
+    <form [formGroup]="form"
+          (ngSubmit)="save()"
+          novalidate>
+
+      <div class="row g-3">
+
+        <div class="col-md-6">
+          <label for="firstName"
+                 class="form-label">
+            Nome
+          </label>
+
+          <input id="firstName"
+                 type="text"
+                 class="form-control"
+                 formControlName="firstName"
+                 [class.is-invalid]="
+              form.controls.firstName.invalid &&
+              form.controls.firstName.touched
+            " />
+
+          <div class="invalid-feedback">
+            Il nome è obbligatorio.
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label for="lastName"
+                 class="form-label">
+            Cognome
+          </label>
+
+          <input id="lastName"
+                 type="text"
+                 class="form-control"
+                 formControlName="lastName"
+                 [class.is-invalid]="
+              form.controls.lastName.invalid &&
+              form.controls.lastName.touched
+            " />
+
+          <div class="invalid-feedback">
+            Il cognome è obbligatorio.
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label for="username"
+                 class="form-label">
+            Username
+          </label>
+
+          <input id="username"
+                 type="text"
+                 class="form-control"
+                 formControlName="username"
+                 autocomplete="off"
+                 [class.is-invalid]="
+              form.controls.username.invalid &&
+              form.controls.username.touched
+            " />
+
+          <div class="invalid-feedback">
+            Inserisci uno username.
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label for="email"
+                 class="form-label">
+            Email
+          </label>
+
+          <input id="email"
+                 type="email"
+                 class="form-control"
+                 formControlName="email"
+                 [class.is-invalid]="
+              form.controls.email.invalid &&
+              form.controls.email.touched
+            " />
+
+          <div class="invalid-feedback">
+            Inserisci un indirizzo email valido.
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label for="password"
+                 class="form-label">
+            Password
+          </label>
+
+          <input id="password"
+                 type="password"
+                 class="form-control"
+                 formControlName="password"
+                 autocomplete="new-password"
+                 [class.is-invalid]="
+              form.controls.password.invalid &&
+              form.controls.password.touched
+            " />
+
+          <div class="invalid-feedback">
+            La password deve contenere almeno 8 caratteri.
+          </div>
+
+          <div class="form-text">
+            Deve contenere almeno una maiuscola,
+            una minuscola e un numero.
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label for="role"
+                 class="form-label">
+            Ruolo
+          </label>
+
+          <select id="role"
+                  class="form-select"
+                  formControlName="role">
+            <option value="User">
+              User
+            </option>
+
+            <option value="Admin">
+              Admin
+            </option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 mt-4">
+
+        <a routerLink="/users"
+           class="btn btn-outline-secondary">
+          Annulla
+        </a>
+
+        <button class="btn btn-primary"
+                type="submit"
+                [disabled]="saving()">
+          @if (saving()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          }
+
+          Crea utente
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+</div>

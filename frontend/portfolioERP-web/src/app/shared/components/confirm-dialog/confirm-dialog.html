@@ -1,0 +1,56 @@
+@if (open) {
+<div class="modal-backdrop fade show"
+     aria-hidden="true"></div>
+
+<div class="modal fade show d-block"
+     tabindex="-1"
+     role="dialog"
+     aria-modal="true"
+     [attr.aria-labelledby]="'confirm-dialog-title'"
+     (click)="cancel()">
+  <div class="modal-dialog modal-dialog-centered"
+       (click)="$event.stopPropagation()">
+    <div class="modal-content shadow">
+      <div class="modal-header">
+        <h2 id="confirm-dialog-title"
+            class="modal-title fs-5">
+          {{ title }}
+        </h2>
+
+        <button class="btn-close"
+                type="button"
+                aria-label="Chiudi"
+                [disabled]="busy"
+                (click)="cancel()"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="mb-0">{{ message }}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary"
+                type="button"
+                [disabled]="busy"
+                (click)="cancel()">
+          {{ cancelText }}
+        </button>
+
+        <button class="btn"
+                [class.btn-danger]="danger"
+                [class.btn-primary]="!danger"
+                type="button"
+                [disabled]="busy"
+                (click)="confirm()">
+          @if (busy) {
+          <span class="spinner-border spinner-border-sm me-2"
+                aria-hidden="true"></span>
+          }
+
+          {{ busy ? 'Operazione in corso...' : confirmText }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+}

@@ -1,0 +1,145 @@
+<div class="app-layout">
+  <aside class="sidebar"
+         [class.sidebar-open]="sidebarOpen()">
+    <div class="sidebar-header">
+      <a class="brand"
+         routerLink="/dashboard"
+         (click)="closeSidebar()">
+        <span class="brand-mark">ERP</span>
+
+        <span class="brand-text">
+          <strong>Portfolio</strong>
+          <small>Management System</small>
+        </span>
+      </a>
+
+      <button class="sidebar-close"
+              type="button"
+              aria-label="Chiudi menu"
+              (click)="closeSidebar()">
+        ×
+      </button>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Navigazione principale">
+      <a routerLink="/dashboard"
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }"
+         (click)="closeSidebar()">
+        <span class="nav-icon">▦</span>
+        <span>Dashboard</span>
+      </a>
+
+      <a routerLink="/products"
+         routerLinkActive="active"
+         (click)="closeSidebar()">
+        <span class="nav-icon">▣</span>
+        <span>Prodotti</span>
+      </a>
+
+      <a routerLink="/categories"
+         routerLinkActive="active"
+         (click)="closeSidebar()">
+        <span class="nav-icon">◫</span>
+        <span>Categorie</span>
+      </a>
+
+      <a routerLink="/customers"
+         routerLinkActive="active"
+         (click)="closeSidebar()">
+        <span class="nav-icon">♙</span>
+        <span>Clienti</span>
+      </a>
+
+      <a routerLink="/orders"
+         routerLinkActive="active"
+         (click)="closeSidebar()">
+        <span class="nav-icon">≣</span>
+        <span>Ordini</span>
+      </a>
+
+      <a routerLink="/suppliers"
+         routerLinkActive="active"
+         (click)="closeSidebar()">
+        <span class="nav-icon">▣</span>
+        <span>Fornitori</span>
+      </a>
+
+      <a routerLink="/purchase-orders"
+         routerLinkActive="active"
+         (click)="closeSidebar()">
+        <span class="nav-icon">▣</span>
+        <span>Ordini di acquisto</span>
+      </a>
+
+      @if (authService.currentUser()?.role === 'Admin') {
+      <a routerLink="/users"
+         routerLinkActive="active"
+         class="nav-link">
+        Utenti
+      </a>
+      }
+    </nav>
+    
+    <div class="sidebar-footer">
+      <small>PortfolioERP</small>
+      <span>Angular + ASP.NET Core</span>
+    </div>
+  </aside>
+
+  @if (sidebarOpen()) {
+  <button class="sidebar-backdrop"
+          type="button"
+          aria-label="Chiudi menu"
+          (click)="closeSidebar()"></button>
+  }
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-button"
+                type="button"
+                aria-label="Apri menu"
+                (click)="toggleSidebar()">
+          ☰
+        </button>
+
+        <div>
+          <h1>PortfolioERP</h1>
+          <p>Business Management Platform</p>
+        </div>
+      </div>
+
+      <div class="topbar-user">
+        <div class="user-avatar">
+          {{
+      authService.currentUser()?.firstName?.charAt(0)
+          }}{{
+      authService.currentUser()?.lastName?.charAt(0)
+          }}
+        </div>
+
+        <div class="user-info">
+          <strong>
+            {{ authService.currentUser()?.firstName }}
+            {{ authService.currentUser()?.lastName }}
+          </strong>
+
+          <span>
+            {{ authService.currentUser()?.role }}
+          </span>
+        </div>
+
+        <button class="btn btn-sm btn-outline-secondary"
+                type="button"
+                (click)="authService.logout()">
+          Esci
+        </button>
+      </div>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
+</div>
