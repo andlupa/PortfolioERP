@@ -263,8 +263,7 @@ jobs:
       #
       # ":latest" è il tag assegnato all'immagine.
       - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository_owner }}/portfolioerp-api:latest .
-
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/portfolioerp-api:${{ github.sha }} .
 
       # ------------------------------------------------------
       # STEP 4 - PUSH DELL'IMMAGINE DOCKER
@@ -277,8 +276,7 @@ jobs:
       # sulla macchina temporanea GitHub, ma è disponibile
       # nel registry remoto.
       - name: Push Docker image
-        run: docker push ghcr.io/${{ github.repository_owner }}/portfolioerp-api:latest
-
+        run: docker push ghcr.io/${{ github.repository_owner }}/portfolioerp-api:${{ github.sha }}
 
       # ------------------------------------------------------
       # STEP 5 - LOGIN AD AZURE TRAMITE OIDC
@@ -356,4 +354,4 @@ jobs:
           az containerapp update \
             --name portfolioerp-api \
             --resource-group al_group \
-            --image ghcr.io/${{ github.repository_owner }}/portfolioerp-api:latest
+            --image ghcr.io/${{ github.repository_owner }}/portfolioerp-api:${{ github.sha }}
