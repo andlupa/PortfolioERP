@@ -100,10 +100,13 @@ builder.Services.AddScoped<DevelopmentDataSeeder>();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AngularDevelopment", policy =>
+    options.AddPolicy("Frontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:4200")
+            .WithOrigins(
+                "http://localhost:4200",
+                "https://portfolioerp.pages.dev"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
