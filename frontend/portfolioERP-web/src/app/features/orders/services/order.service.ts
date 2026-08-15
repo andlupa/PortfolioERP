@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { environment } from '../../../../environments/environment.development';
+import { environment } from '../../../../environments/environment';
 import { PagedResponse } from '../../../shared/models/paged-response';
 import { OrderListItem } from '../models/order-list-item';
 import { OrderQuery } from '../models/order-query';

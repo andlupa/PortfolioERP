@@ -188,8 +188,11 @@ export class PurchaseOrderFormPage implements OnInit {
 
     const value = this.form.getRawValue();
 
+    const rawLines =
+      value.lines as PurchaseOrderLineRequest[];
+
     const lines: PurchaseOrderLineRequest[] =
-      value.lines.map(line => ({
+      rawLines.map(line => ({
         productId: Number(line.productId),
         quantity: Number(line.quantity),
         unitPrice: Number(line.unitPrice),

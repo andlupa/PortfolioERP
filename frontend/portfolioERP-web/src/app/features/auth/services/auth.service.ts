@@ -3,7 +3,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 
-import { environment } from '../../../../environments/environment.development';
+import { environment } from '../../../../environments/environment';
 import { AuthUser } from '../models/auth-user';
 import { LoginRequest } from '../models/login-request';
 import { LoginResponse } from '../models/login-response';
