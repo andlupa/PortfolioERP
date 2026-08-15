@@ -28,6 +28,17 @@ export class AuthService {
   readonly currentUser =
     this.currentUserSignal.asReadonly();
 
+  readonly canWrite = computed(() => {
+    const user = this.currentUser();
+
+    return user?.role === 'Admin' ||
+      user?.role === 'User';
+  });
+
+  readonly isDemo = computed(
+    () => this.currentUser()?.role === 'Demo'
+  );
+
   readonly isAuthenticated = computed(() =>
     this.currentUserSignal() !== null &&
     this.hasValidToken()

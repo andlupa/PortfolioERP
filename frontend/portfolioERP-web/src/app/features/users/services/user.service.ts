@@ -31,7 +31,7 @@ export class UserService {
 
   updateRole(
     id: number,
-    role: 'Admin' | 'User'
+    role: 'Admin' | 'User' | 'Demo'
   ): Observable<User> {
     return this.http.patch<User>(
       `${this.apiUrl}/${id}/role`,

@@ -82,7 +82,7 @@ export class UserListPage implements OnInit {
 
   changeRole(
     user: User,
-    role: 'Admin' | 'User'
+    role: 'Admin' | 'User' | 'Demo'
   ): void {
     if (user.role === role) {
       return;

@@ -1,4 +1,5 @@
 using FluentValidation;
+using PortfolioERP.Domain.Security;
 
 namespace PortfolioERP.Application.Features.Authentication;
 
@@ -40,9 +41,10 @@ public sealed class CreateUserRequestValidator
         RuleFor(request => request.Role)
             .NotEmpty()
             .Must(role =>
-                role == "Admin" ||
-                role == "User")
+                role == AppRoles.Admin ||
+                role == AppRoles.User ||
+                role == AppRoles.Demo)
             .WithMessage(
-                "Role must be Admin or User.");
+                    "Role must be Admin, User or Demo.");
     }
 }

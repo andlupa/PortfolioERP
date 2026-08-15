@@ -111,6 +111,7 @@
       </div>
 
       <div class="topbar-user">
+
         <div class="user-avatar">
           {{
       authService.currentUser()?.firstName?.charAt(0)
@@ -129,6 +130,12 @@
             {{ authService.currentUser()?.role }}
           </span>
         </div>
+
+        @if (authService.isDemo()) {
+        <span class="badge text-bg-info">
+          Sola lettura
+        </span>
+        }
 
         <button class="btn btn-sm btn-outline-secondary"
                 type="button"

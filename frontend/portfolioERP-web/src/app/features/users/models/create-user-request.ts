@@ -4,5 +4,5 @@ export interface CreateUserRequest {
   firstName: string;
   lastName: string;
   password: string;
-  role: 'Admin' | 'User';
+  role: 'Admin' | 'User' | 'Demo';
 }

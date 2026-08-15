@@ -67,8 +67,8 @@ export class UserFormPage {
       ]
     ],
 
-    role: this.formBuilder.nonNullable.control<
-      'Admin' | 'User'
+    role: this.formBuilder.nonNullable.control <
+      'Admin' | 'User' | 'Demo'
     >('User')
   });
 
