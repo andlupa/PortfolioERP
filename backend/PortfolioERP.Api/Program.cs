@@ -194,7 +194,7 @@ if (app.Environment.IsDevelopment())
 // Commentalo per ora, visto il warning HTTPS
 // app.UseHttpsRedirection();
 
-app.UseCors("AngularDevelopment");
+app.UseCors("Frontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
