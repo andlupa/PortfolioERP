@@ -46,6 +46,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "CanWrite")]
     public async Task<ActionResult<CategoryResponse>> Create(
         CreateCategoryRequest request,
         CancellationToken cancellationToken)
@@ -61,6 +62,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = "CanWrite")]
     public async Task<IActionResult> Update(
         int id,
         UpdateCategoryRequest request,
@@ -80,6 +82,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = "CanWrite")]
     public async Task<IActionResult> Delete(
         int id,
         CancellationToken cancellationToken)

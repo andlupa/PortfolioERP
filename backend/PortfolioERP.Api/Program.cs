@@ -10,6 +10,7 @@ using PortfolioERP.Infrastructure.Services;
 using PortfolioERP.Api.Filters;
 using PortfolioERP.Api.Middlewares;
 using PortfolioERP.Domain.Services.Orders;
+using PortfolioERP.Domain.Security;
 using PortfolioERP.Application.Features.Categories;
 using PortfolioERP.Application.Features.Products;
 using PortfolioERP.Application.Features.Customers;
@@ -172,7 +173,15 @@ builder.Services
             };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CanWrite", policy =>
+    {
+        policy.RequireRole(
+            AppRoles.Admin,
+            AppRoles.User);
+    });
+});
 
 builder.Services.AddScoped<IUserService, UserService>();
 

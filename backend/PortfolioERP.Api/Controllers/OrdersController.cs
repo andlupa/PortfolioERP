@@ -47,7 +47,8 @@ public sealed class OrdersController : ControllerBase
 	}
 
 	[HttpPost]
-	public async Task<ActionResult<OrderResponse>> Create(
+    [Authorize(Policy = "CanWrite")]
+    public async Task<ActionResult<OrderResponse>> Create(
 		CreateOrderRequest request,
 		CancellationToken cancellationToken)
 	{
@@ -62,7 +63,8 @@ public sealed class OrdersController : ControllerBase
 	}
 
 	[HttpPost("{id:int}/confirm")]
-	public async Task<IActionResult> Confirm(
+    [Authorize(Policy = "CanWrite")]
+    public async Task<IActionResult> Confirm(
 		int id,
 		CancellationToken cancellationToken)
 	{
@@ -79,7 +81,8 @@ public sealed class OrdersController : ControllerBase
 	}
 
 	[HttpPost("{id:int}/cancel")]
-	public async Task<IActionResult> Cancel(
+    [Authorize(Policy = "CanWrite")]
+    public async Task<IActionResult> Cancel(
 		int id,
 		CancellationToken cancellationToken)
 	{

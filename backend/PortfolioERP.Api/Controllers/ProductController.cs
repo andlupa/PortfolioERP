@@ -47,6 +47,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "CanWrite")]
     [ProducesResponseType(
     typeof(ProductResponse),
     StatusCodes.Status201Created)]
@@ -70,6 +71,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = "CanWrite")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(
     typeof(ValidationProblemDetails),
@@ -95,6 +97,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = "CanWrite")]
     public async Task<IActionResult> Delete(
         int id,
         CancellationToken cancellationToken)

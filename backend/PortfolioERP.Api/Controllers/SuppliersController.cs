@@ -58,6 +58,7 @@ public sealed class SuppliersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "CanWrite")]
     [ProducesResponseType(
         typeof(SupplierResponse),
         StatusCodes.Status201Created)]
@@ -89,6 +90,7 @@ public sealed class SuppliersController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = "CanWrite")]
     [ProducesResponseType(
         typeof(SupplierResponse),
         StatusCodes.Status200OK)]
@@ -126,6 +128,7 @@ public sealed class SuppliersController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = "CanWrite")]
     [ProducesResponseType(
         StatusCodes.Status204NoContent)]
     [ProducesResponseType(

@@ -47,6 +47,7 @@ public class CustomersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "CanWrite")]
     public async Task<ActionResult<CustomerResponse>> Create(
         CreateCustomerRequest request,
         CancellationToken cancellationToken)
@@ -62,6 +63,7 @@ public class CustomersController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = "CanWrite")]
     public async Task<IActionResult> Update(
         int id,
         UpdateCustomerRequest request,
@@ -81,6 +83,7 @@ public class CustomersController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = "CanWrite")]
     public async Task<IActionResult> Delete(
         int id,
         CancellationToken cancellationToken)

@@ -46,6 +46,7 @@ public class PurchaseOrdersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "CanWrite")]
     public async Task<IActionResult> Create(
         CreatePurchaseOrderRequest request,
         CancellationToken cancellationToken)
@@ -62,6 +63,7 @@ public class PurchaseOrdersController : ControllerBase
     }
 
     [HttpPost("{id:int}/order")]
+    [Authorize(Policy = "CanWrite")]
     public async Task<IActionResult> MarkAsOrdered(
         int id,
         CancellationToken cancellationToken)
@@ -75,6 +77,7 @@ public class PurchaseOrdersController : ControllerBase
     }
 
     [HttpPost("{id:int}/receive")]
+    [Authorize(Policy = "CanWrite")]
     public async Task<IActionResult> Receive(
         int id,
         CancellationToken cancellationToken)
@@ -88,6 +91,7 @@ public class PurchaseOrdersController : ControllerBase
     }
 
     [HttpPost("{id:int}/cancel")]
+    [Authorize(Policy = "CanWrite")]
     public async Task<IActionResult> Cancel(
         int id,
         CancellationToken cancellationToken)
