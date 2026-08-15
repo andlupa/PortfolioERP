@@ -1,0 +1,101 @@
+# Pipeline CI/CD per Continuous Integration e Continuous Deployment
+
+# Nome visualizzato nella sezione Actions di GitHub
+name: .NET CI
+
+# Permessi concessi al token temporaneo GITHUB_TOKEN usato dal workflow
+permissions:
+  # Permette al workflow di leggere il contenuto del repository
+  contents: read
+
+  # Permette di pubblicare immagini/pacchetti su GitHub Container Registry
+  packages: write
+
+  # Permette al job di richiedere a GitHub un token OIDC temporaneo
+  # usato per autenticarsi verso Azure senza client secret
+  id-token: write
+
+# Eventi che fanno partire la pipeline
+on:
+  # Avvia il workflow quando viene fatto un push sul branch main
+  push:
+    branches: [ "main" ]
+
+  # Avvia il workflow anche per una Pull Request diretta verso main
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # Nome interno del job
+  build-and-test:
+
+    # GitHub crea una macchina virtuale Ubuntu temporanea
+    # sulla quale verranno eseguiti tutti gli step
+    runs-on: ubuntu-latest
+
+    steps:
+      # Scarica il contenuto del repository sulla macchina virtuale
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # Installa/configura .NET SDK 10 sulla macchina virtuale
+      - name: Install .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      # Scarica i pacchetti NuGet richiesti dai progetti .NET
+      - name: Restore dependencies
+        run: dotnet restore backend/PortfolioERP_BackEnd.slnx
+
+      # Compila la solution
+      # --no-restore evita di ripetere il restore già eseguito
+      - name: Build
+        run: dotnet build backend/PortfolioERP_BackEnd.slnx --no-restore
+
+      # Esegue i test automatici
+      # --no-build evita di ricompilare il progetto
+      - name: Run tests
+        run: dotnet test backend/PortfolioERP_BackEnd.slnx --no-build
+
+      # Effettua il login a GitHub Container Registry
+      # github.actor = utente/processo che ha avviato il workflow
+      # GITHUB_TOKEN = token temporaneo creato automaticamente da GitHub
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Costruisce l'immagine Docker usando il Dockerfile presente nel repository
+      # e le assegna il nome completo del package su GHCR
+      - name: Build Docker image
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/portfolioerp-api:latest .
+
+      # Pubblica l'immagine Docker appena costruita su GitHub Container Registry
+      - name: Push Docker image
+        run: docker push ghcr.io/${{ github.repository_owner }}/portfolioerp-api:latest
+
+      # Autenticazione verso Azure tramite OpenID Connect
+      # Non viene usata una password Azure o un client secret permanente
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          # Identifica l'App Registration / Service Principal Azure
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+
+          # Identifica il tenant Microsoft Entra ID
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+
+          # Indica la subscription Azure sulla quale operare
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # Aggiorna Azure Container Apps dicendo di usare l'ultima
+      # immagine Docker pubblicata su GHCR
+      - name: Deploy to Azure Container Apps
+        run: |
+          az containerapp update \
+            --name portfolioerp-api \
+            --resource-group al_group \
+            --image ghcr.io/${{ github.repository_owner }}/portfolioerp-api:latest

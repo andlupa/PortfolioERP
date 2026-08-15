@@ -1,40 +1,244 @@
-name: .NET CI
+# ============================================================
+# PIPELINE CI/CD - PORTFOLIO ERP
+#
+# CI = Continuous Integration
+#      Compila il progetto ed esegue automaticamente i test.
+#
+# CD = Continuous Deployment
+#      Se CI termina correttamente, crea l'immagine Docker,
+#      la pubblica su GitHub Container Registry e aggiorna
+#      automaticamente l'applicazione su Azure Container Apps.
+# ============================================================
+
+
+# Nome della pipeline visualizzato nella sezione "Actions" di GitHub
+name: .NET CI/CD
+
+
+# ============================================================
+# PERMESSI DEL WORKFLOW
+# ============================================================
 
 permissions:
+
+  # Permette al workflow di leggere il contenuto del repository.
+  # Serve, ad esempio, ad actions/checkout per scaricare il codice.
   contents: read
+
+  # Permette al workflow di pubblicare package.
+  # Nel nostro caso il package è l'immagine Docker pubblicata
+  # su GitHub Container Registry (GHCR).
   packages: write
+
+  # Permette al job di richiedere a GitHub un token OIDC temporaneo.
+  # Il token verrà usato da azure/login per autenticarsi su Azure
+  # senza memorizzare una password o un Client Secret Azure.
   id-token: write
 
+
+# ============================================================
+# EVENTI CHE AVVIANO LA PIPELINE
+# ============================================================
+
 on:
+
+  # Avvia il workflow quando viene eseguito un push sul branch main.
   push:
     branches: [ "main" ]
 
+  # Avvia il workflow anche quando viene aperta o aggiornata
+  # una Pull Request che vuole confluire nel branch main.
   pull_request:
     branches: [ "main" ]
 
+
+# ============================================================
+# JOB DELLA PIPELINE
+# ============================================================
+
 jobs:
+
+
+  # ==========================================================
+  # JOB 1 - CONTINUOUS INTEGRATION
+  #
+  # Questo job:
+  # 1. scarica il codice
+  # 2. installa .NET
+  # 3. ripristina le dipendenze
+  # 4. compila
+  # 5. esegue i test
+  #
+  # Viene eseguito sia per:
+  # - push su main
+  # - Pull Request verso main
+  # ==========================================================
+
   build-and-test:
 
+
+    # GitHub crea una macchina virtuale Ubuntu temporanea
+    # sulla quale verranno eseguiti gli step di questo job.
     runs-on: ubuntu-latest
 
+
+    # Gli steps vengono eseguiti in sequenza.
+    # Se uno step fallisce, normalmente i successivi non vengono eseguiti.
     steps:
+
+
+      # ------------------------------------------------------
+      # STEP 1 - CHECKOUT
+      # ------------------------------------------------------
+
+      # Scarica il repository GitHub sulla macchina virtuale.
+      #
+      # La VM nasce senza il nostro codice.
+      # Dopo questo step avrà a disposizione backend/, frontend/,
+      # Dockerfile, ecc.
       - name: Checkout repository
         uses: actions/checkout@v5
 
+
+      # ------------------------------------------------------
+      # STEP 2 - INSTALLAZIONE .NET
+      # ------------------------------------------------------
+
+      # Installa/configura .NET SDK 10 sulla macchina Ubuntu.
+      #
+      # Dopo questo step possiamo usare:
+      # dotnet restore
+      # dotnet build
+      # dotnet test
+      # ecc.
       - name: Install .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
 
+
+      # ------------------------------------------------------
+      # STEP 3 - RESTORE
+      # ------------------------------------------------------
+
+      # Legge i progetti contenuti nella solution e scarica
+      # i pacchetti NuGet necessari.
       - name: Restore dependencies
         run: dotnet restore backend/PortfolioERP_BackEnd.slnx
 
+
+      # ------------------------------------------------------
+      # STEP 4 - BUILD
+      # ------------------------------------------------------
+
+      # Compila tutti i progetti della solution.
+      #
+      # --no-restore:
+      # non esegue nuovamente il restore perché è stato
+      # già eseguito nello step precedente.
+      #
+      # Se il codice contiene errori di compilazione,
+      # la pipeline fallisce qui.
       - name: Build
         run: dotnet build backend/PortfolioERP_BackEnd.slnx --no-restore
 
+
+      # ------------------------------------------------------
+      # STEP 5 - TEST
+      # ------------------------------------------------------
+
+      # Esegue automaticamente i test .NET presenti
+      # nei progetti di test della solution.
+      #
+      # --no-build:
+      # evita di ricompilare perché abbiamo appena eseguito la build.
+      #
+      # Se anche un test importante fallisce, il job fallisce
+      # e il deployment non verrà eseguito.
       - name: Run tests
         run: dotnet test backend/PortfolioERP_BackEnd.slnx --no-build
-        
+
+
+
+  # ==========================================================
+  # JOB 2 - CONTINUOUS DEPLOYMENT
+  #
+  # Questo job:
+  # 1. costruisce l'immagine Docker
+  # 2. la pubblica su GHCR
+  # 3. si autentica su Azure tramite OIDC
+  # 4. aggiorna Azure Container Apps
+  #
+  # Deve essere eseguito SOLO dopo che build-and-test
+  # è terminato correttamente.
+  # ==========================================================
+
+  deploy:
+
+
+    # "needs" crea una dipendenza tra i job.
+    #
+    # deploy può partire solo dopo che build-and-test
+    # è terminato con successo.
+    #
+    # Se build o test falliscono:
+    #
+    # build-and-test  ❌
+    #       ↓
+    # deploy        SKIPPED
+    #
+    needs: build-and-test
+
+
+    # Il deployment viene eseguito solamente quando
+    # l'evento è un PUSH sul branch main.
+    #
+    # Una Pull Request eseguirà build e test,
+    # ma NON pubblicherà nulla in produzione.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+
+    # Anche questo job utilizza una macchina Ubuntu temporanea.
+    #
+    # È importante ricordare che normalmente i job vengono
+    # eseguiti su runner separati.
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+
+      # ------------------------------------------------------
+      # STEP 1 - CHECKOUT
+      # ------------------------------------------------------
+
+      # Dobbiamo scaricare nuovamente il repository.
+      #
+      # Il job deploy usa una nuova VM e quindi non possiede
+      # automaticamente i file utilizzati dal job build-and-test.
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+
+      # ------------------------------------------------------
+      # STEP 2 - LOGIN A GITHUB CONTAINER REGISTRY
+      # ------------------------------------------------------
+
+      # Esegue il login a:
+      #
+      # ghcr.io
+      #
+      # cioè GitHub Container Registry.
+      #
+      # github.actor:
+      # rappresenta l'utente/identità che ha avviato il workflow.
+      #
+      # secrets.GITHUB_TOKEN:
+      # è un token temporaneo generato automaticamente da GitHub
+      # per l'esecuzione del workflow.
+      #
+      # Grazie a "packages: write" il token può pubblicare
+      # l'immagine Docker nel registry.
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -42,19 +246,111 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+
+      # ------------------------------------------------------
+      # STEP 3 - BUILD DELL'IMMAGINE DOCKER
+      # ------------------------------------------------------
+
+      # Docker legge il Dockerfile presente nella root
+      # del repository e costruisce l'immagine.
+      #
+      # Le assegniamo il nome:
+      #
+      # ghcr.io/andlupa/portfolioerp-api:latest
+      #
+      # github.repository_owner viene sostituito automaticamente
+      # da GitHub con il proprietario del repository.
+      #
+      # ":latest" è il tag assegnato all'immagine.
       - name: Build Docker image
         run: docker build -t ghcr.io/${{ github.repository_owner }}/portfolioerp-api:latest .
 
+
+      # ------------------------------------------------------
+      # STEP 4 - PUSH DELL'IMMAGINE DOCKER
+      # ------------------------------------------------------
+
+      # Pubblica l'immagine appena costruita su
+      # GitHub Container Registry.
+      #
+      # Da questo momento l'immagine non esiste solamente
+      # sulla macchina temporanea GitHub, ma è disponibile
+      # nel registry remoto.
       - name: Push Docker image
         run: docker push ghcr.io/${{ github.repository_owner }}/portfolioerp-api:latest
 
+
+      # ------------------------------------------------------
+      # STEP 5 - LOGIN AD AZURE TRAMITE OIDC
+      # ------------------------------------------------------
+
+      # azure/login esegue l'autenticazione verso Azure.
+      #
+      # NON utilizziamo una password Azure.
+      # NON utilizziamo un Client Secret permanente.
+      #
+      # Grazie a:
+      #
+      # permissions:
+      #   id-token: write
+      #
+      # azure/login può chiedere a GitHub un token OIDC
+      # temporaneo relativo a questo job.
+      #
+      # GitHub genera e firma il token OIDC includendo
+      # informazioni sull'identità del workflow, ad esempio:
+      #
+      # - repository
+      # - proprietario
+      # - branch
+      # - issuer
+      # - subject
+      # - audience
+      #
+      # azure/login presenta quindi questo token
+      # a Microsoft Entra ID.
+      #
+      # Entra ID confronta issuer, subject e audience
+      # con la Federated Credential che abbiamo configurato
+      # nell'App Registration "github-portfolioerp-deploy".
+      #
+      # Se i dati coincidono, Entra considera attendibile
+      # il workflow GitHub e restituisce un Access Token Azure
+      # temporaneo.
       - name: Azure login
         uses: azure/login@v2
         with:
+
+          # Application/Client ID della App Registration
+          # github-portfolioerp-deploy.
           client-id: ${{ vars.AZURE_CLIENT_ID }}
+
+          # Identifica il tenant Microsoft Entra ID
+          # nel quale si trova l'App Registration.
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
+
+          # Indica la subscription Azure sulla quale
+          # dovranno essere eseguiti i comandi successivi.
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
+
+      # ------------------------------------------------------
+      # STEP 6 - DEPLOY SU AZURE CONTAINER APPS
+      # ------------------------------------------------------
+
+      # Ora Azure CLI è autenticata.
+      #
+      # Aggiorniamo la Container App "portfolioerp-api"
+      # presente nel resource group "al_group".
+      #
+      # Diciamo ad Azure di utilizzare l'ultima immagine
+      # Docker appena pubblicata su GHCR.
+      #
+      # Azure Container Apps scaricherà quindi:
+      #
+      # ghcr.io/andlupa/portfolioerp-api:latest
+      #
+      # e creerà/aggiornerà la revisione dell'applicazione.
       - name: Deploy to Azure Container Apps
         run: |
           az containerapp update \

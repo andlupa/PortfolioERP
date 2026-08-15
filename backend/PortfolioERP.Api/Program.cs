@@ -175,7 +175,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
-app.Logger.LogInformation("PortfolioERP API started in {Environment}", app.Environment.EnvironmentName);
+app.Logger.LogInformation("PortfolioERP API started in {Environment} - CI/CD deployment test", app.Environment.EnvironmentName);
 
 app.UseSerilogRequestLogging();
 
