@@ -14,8 +14,6 @@ public class Product
 
     public decimal VatPercentage { get; set; } = 22m;
 
-    public int StockQuantity { get; set; }
-
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
@@ -23,6 +21,8 @@ public class Product
     public int CategoryId { get; set; }
 
     public Category Category { get; set; } = null!;
+
+    public InventoryItem? Inventory { get; set; }
 
     public ICollection<SalesOrderLine> OrderLines { get; set; }
     = new List<SalesOrderLine>();

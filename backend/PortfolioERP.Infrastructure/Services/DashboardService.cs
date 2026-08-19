@@ -102,8 +102,14 @@ public sealed class DashboardService : IDashboardService
             .AsNoTracking()
             .Where(product =>
                 product.IsActive &&
-                product.StockQuantity <= 5)
-            .OrderBy(product => product.StockQuantity)
+                product.Inventory != null &&
+                (
+                    product.Inventory.QuantityOnHand -
+                    product.Inventory.QuantityReserved
+                ) <= product.Inventory.ReorderLevel)
+            .OrderBy(product =>
+                product.Inventory!.QuantityOnHand -
+                product.Inventory.QuantityReserved)
             .ThenBy(product => product.Name)
             .Take(10)
             .Select(product =>
@@ -111,7 +117,11 @@ public sealed class DashboardService : IDashboardService
                     product.Id,
                     product.Code,
                     product.Name,
-                    product.StockQuantity))
+                    product.Inventory!.QuantityOnHand,
+                    product.Inventory.QuantityReserved,
+                    product.Inventory.QuantityOnHand -
+                        product.Inventory.QuantityReserved,
+                    product.Inventory.ReorderLevel))
             .ToListAsync(cancellationToken);
 
         var sixMonthsStart = monthStart.AddMonths(-5);

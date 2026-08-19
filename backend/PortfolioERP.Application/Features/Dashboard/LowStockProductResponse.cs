@@ -1,7 +1,10 @@
 namespace PortfolioERP.Application.Features.Dashboard;
 
-public sealed record LowStockProductResponse(
+public record LowStockProductResponse(
     int Id,
     string Code,
     string Name,
-    int StockQuantity);
+    int QuantityOnHand,
+    int QuantityReserved,
+    int AvailableQuantity,
+    int ReorderLevel);

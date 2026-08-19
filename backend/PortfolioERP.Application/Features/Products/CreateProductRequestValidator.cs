@@ -27,10 +27,6 @@ public sealed class CreateProductRequestValidator
             .GreaterThanOrEqualTo(0)
             .WithMessage("Price cannot be negative.");
 
-        RuleFor(x => x.StockQuantity)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage("Stock quantity cannot be negative.");
-
         RuleFor(x => x.CategoryId)
             .GreaterThan(0)
             .WithMessage("CategoryId must be greater than zero.");

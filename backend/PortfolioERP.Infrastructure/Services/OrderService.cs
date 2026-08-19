@@ -2,10 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using PortfolioERP.Application.Common;
 using PortfolioERP.Application.Common.Exceptions;
 using PortfolioERP.Application.Features.Orders;
+using PortfolioERP.Application.Features.Inventory;
 using PortfolioERP.Domain.Entities;
 using PortfolioERP.Domain.Enums;
 using PortfolioERP.Domain.Services.Orders;
 using PortfolioERP.Infrastructure.Persistence;
+
 
 namespace PortfolioERP.Infrastructure.Services;
 
@@ -13,13 +15,16 @@ public sealed class OrderService : IOrderService
 {
     private readonly AppDbContext _dbContext;
     private readonly IOrderCalculator _orderCalculator;
+    private readonly IInventoryService _inventoryService;
 
     public OrderService(
         AppDbContext dbContext,
-        IOrderCalculator orderCalculator)
+        IOrderCalculator orderCalculator,
+        IInventoryService inventoryService)
     {
         _dbContext = dbContext;
         _orderCalculator = orderCalculator;
+        _inventoryService = inventoryService;
     }
 
     public async Task<PagedResponse<OrderListItemResponse>> GetAllAsync(
@@ -211,14 +216,6 @@ public sealed class OrderService : IOrderService
         {
             var product = products[requestedLine.ProductId];
 
-            if (requestedLine.Quantity > product.StockQuantity)
-            {
-                throw new ConflictException(
-                    $"Insufficient stock for product {product.Code}. " +
-                    $"Available: {product.StockQuantity}; " +
-                    $"requested: {requestedLine.Quantity}.");
-            }
-
             calculationInputs.Add(
                 new OrderLineCalculationInput(
                     product.Id,
@@ -228,99 +225,130 @@ public sealed class OrderService : IOrderService
                     product.VatPercentage));
         }
 
-        var calculation = _orderCalculator.Calculate(
-            calculationInputs);
+        var calculation = _orderCalculator.Calculate(calculationInputs);
 
-        await using var transaction =
-            await _dbContext.Database.BeginTransactionAsync(
-                cancellationToken);
-
-        try
+        var order = new SalesOrder
         {
-            var order = new SalesOrder
-            {
-                OrderNumber = await GenerateOrderNumberAsync(
-                    cancellationToken),
-                CustomerId = customer.Id,
-                OrderDate = DateTime.UtcNow,
-                Status = OrderStatus.Draft,
-                Notes = NormalizeOptional(request.Notes),
-                Subtotal = calculation.Subtotal,
-                DiscountAmount = calculation.DiscountAmount,
-                TaxAmount = calculation.TaxAmount,
-                TotalAmount = calculation.TotalAmount
-            };
+            OrderNumber = await GenerateOrderNumberAsync(
+                cancellationToken),
 
-            foreach (var calculatedLine in calculation.Lines)
-            {
-                var product = products[calculatedLine.ProductId];
+            CustomerId = customer.Id,
+            OrderDate = DateTime.UtcNow,
+            Status = OrderStatus.Draft,
+            Notes = NormalizeOptional(request.Notes),
 
-                order.Lines.Add(new SalesOrderLine
+            Subtotal = calculation.Subtotal,
+            DiscountAmount = calculation.DiscountAmount,
+            TaxAmount = calculation.TaxAmount,
+            TotalAmount = calculation.TotalAmount
+        };
+
+        foreach (var calculatedLine in calculation.Lines)
+        {
+            order.Lines.Add(
+                new SalesOrderLine
                 {
                     ProductId = calculatedLine.ProductId,
                     Quantity = calculatedLine.Quantity,
                     UnitPrice = calculatedLine.UnitPrice,
+
                     DiscountPercentage =
                         calculatedLine.DiscountPercentage,
+
                     DiscountAmount =
                         calculatedLine.DiscountAmount,
+
                     NetAmount =
                         calculatedLine.NetAmount,
+
                     VatPercentage =
                         calculatedLine.VatPercentage,
+
                     VatAmount =
                         calculatedLine.VatAmount,
+
                     TotalAmount =
                         calculatedLine.TotalAmount
                 });
-
-                product.StockQuantity -= calculatedLine.Quantity;
-            
-            }
-
-            _dbContext.SalesOrders.Add(order);
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-
-            return await GetByIdAsync(order.Id, cancellationToken)
-                ?? throw new InvalidOperationException(
-                    "The created order could not be loaded.");
-            
         }
-        catch
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+
+        _dbContext.SalesOrders.Add(order);
+
+        await _dbContext.SaveChangesAsync(
+            cancellationToken);
+
+        return await GetByIdAsync(
+                   order.Id,
+                   cancellationToken)
+               ?? throw new InvalidOperationException(
+                   "The created order could not be loaded.");
+
     }
 
     public async Task<bool> ConfirmAsync(
-        int id,
-        CancellationToken cancellationToken)
+    int id,
+    CancellationToken cancellationToken)
     {
-        var order = await _dbContext.SalesOrders
-            .FirstOrDefaultAsync(
-                order => order.Id == id,
-                cancellationToken);
+        Console.WriteLine(
+            $"Order DbContext: {_dbContext.ContextId}");
 
-        if (order is null)
+        var strategy =
+            _dbContext.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
         {
-            return false;
-        }
+            await using var transaction =
+                await _dbContext.Database.BeginTransactionAsync(
+                    cancellationToken);
 
-        if (order.Status != OrderStatus.Draft)
-        {
-            throw new ConflictException(
-                "Only draft orders can be confirmed.");
-        }
+            try
+            {
+                var order = await _dbContext.SalesOrders
+                    .Include(order => order.Lines)
+                    .FirstOrDefaultAsync(
+                        order => order.Id == id,
+                        cancellationToken);
 
-        order.Status = OrderStatus.Confirmed;
-        order.UpdatedAtUtc = DateTime.UtcNow;
+                if (order is null)
+                {
+                    return false;
+                }
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+                if (order.Status != OrderStatus.Draft)
+                {
+                    throw new ConflictException(
+                        "Only draft orders can be confirmed.");
+                }
 
-        return true;
+                foreach (var line in order.Lines)
+                {
+                    await _inventoryService.ReserveAsync(
+                        line.ProductId,
+                        line.Quantity,
+                        "SalesOrder",
+                        order.Id,
+                        cancellationToken);
+                }
+
+                order.Status = OrderStatus.Confirmed;
+                order.UpdatedAtUtc = DateTime.UtcNow;
+
+                await _dbContext.SaveChangesAsync(
+                    cancellationToken);
+
+                await transaction.CommitAsync(
+                    cancellationToken);
+
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync(
+                    cancellationToken);
+
+                throw;
+            }
+        });
     }
 
     public async Task<bool> CancelAsync(
@@ -350,44 +378,44 @@ public sealed class OrderService : IOrderService
                 "Shipped or completed orders cannot be cancelled.");
         }
 
-        await using var transaction =
-            await _dbContext.Database.BeginTransactionAsync(
-                cancellationToken);
+        var strategy =
+            _dbContext.Database.CreateExecutionStrategy();
 
-        try
+        return await strategy.ExecuteAsync(async () =>
         {
-            var productIds = order.Lines
-                .Select(line => line.ProductId)
-                .Distinct()
-                .ToList();
-
-            var products = await _dbContext.Products
-                .Where(product => productIds.Contains(product.Id))
-                .ToDictionaryAsync(
-                    product => product.Id,
+            await using var transaction =
+                await _dbContext.Database.BeginTransactionAsync(
                     cancellationToken);
 
-            foreach (var line in order.Lines)
+            try
             {
-                if (products.TryGetValue(line.ProductId, out var product))
+                if (order.Status == OrderStatus.Confirmed)
                 {
-                    product.StockQuantity += line.Quantity;
+                    foreach (var line in order.Lines)
+                    {
+                        await _inventoryService.ReleaseAsync(
+                            line.ProductId,
+                            line.Quantity,
+                            "SalesOrder",
+                            order.Id,
+                            cancellationToken);
+                    }
                 }
+
+                order.Status = OrderStatus.Cancelled;
+                order.UpdatedAtUtc = DateTime.UtcNow;
+
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                return true;
             }
-
-            order.Status = OrderStatus.Cancelled;
-            order.UpdatedAtUtc = DateTime.UtcNow;
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-
-            return true;
-        }
-        catch
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        });
     }
 
     private async Task<string> GenerateOrderNumberAsync(
@@ -591,11 +619,16 @@ public sealed class OrderService : IOrderService
 
             var product = products[requestedLine.ProductId];
 
-            if (requestedLine.Quantity > product.StockQuantity)
+            var availableQuantity =
+                await _inventoryService.GetAvailableQuantityAsync(
+                    requestedLine.ProductId,
+                    cancellationToken);
+
+            if (requestedLine.Quantity > availableQuantity)
             {
                 throw new ConflictException(
                     $"Insufficient stock for product {product.Code}. " +
-                    $"Available: {product.StockQuantity}; " +
+                    $"Available: {availableQuantity}; " +
                     $"requested: {requestedLine.Quantity}.");
             }
 
@@ -645,5 +678,68 @@ public sealed class OrderService : IOrderService
             netAmount,
             calculation.TaxAmount,
             calculation.TotalAmount);
+    }
+
+    public async Task<bool> ShipAsync(
+    int id,
+    CancellationToken cancellationToken)
+    {
+        var strategy =
+            _dbContext.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction =
+                await _dbContext.Database.BeginTransactionAsync(
+                    cancellationToken);
+
+            try
+            {
+                var order = await _dbContext.SalesOrders
+                    .Include(order => order.Lines)
+                    .FirstOrDefaultAsync(
+                        order => order.Id == id,
+                        cancellationToken);
+
+                if (order is null)
+                {
+                    return false;
+                }
+
+                if (order.Status != OrderStatus.Confirmed)
+                {
+                    throw new ConflictException(
+                        "Only confirmed orders can be shipped.");
+                }
+
+                foreach (var line in order.Lines)
+                {
+                    await _inventoryService.ShipAsync(
+                        line.ProductId,
+                        line.Quantity,
+                        "SalesOrder",
+                        order.Id,
+                        cancellationToken);
+                }
+
+                order.Status = OrderStatus.Shipped;
+                order.UpdatedAtUtc = DateTime.UtcNow;
+
+                await _dbContext.SaveChangesAsync(
+                    cancellationToken);
+
+                await transaction.CommitAsync(
+                    cancellationToken);
+
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync(
+                    cancellationToken);
+
+                throw;
+            }
+        });
     }
 }

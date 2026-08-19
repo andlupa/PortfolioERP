@@ -117,4 +117,20 @@ public sealed class OrdersController : ControllerBase
 
         return Ok(calculation);
     }
+
+    [HttpPost("{id:int}/ship")]
+    public async Task<IActionResult> Ship(
+    int id,
+    CancellationToken cancellationToken)
+    {
+        var result =
+            await _orderService.ShipAsync(
+                id,
+                cancellationToken);
+
+        if (!result)
+            return NotFound();
+
+        return NoContent();
+    }
 }

@@ -6,6 +6,5 @@ public sealed record UpdateProductRequest(
     string? Description,
     decimal Price,
     decimal VatPercentage,
-    int StockQuantity,
     int CategoryId,
     bool IsActive);

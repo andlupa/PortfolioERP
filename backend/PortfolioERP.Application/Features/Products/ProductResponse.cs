@@ -1,13 +1,15 @@
 namespace PortfolioERP.Application.Features.Products;
 
-public sealed record ProductResponse(
+public record ProductResponse(
     int Id,
     string Code,
     string Name,
     string? Description,
     decimal Price,
     decimal VatPercentage,
-    int StockQuantity,
+    int QuantityOnHand,
+    int QuantityReserved,
+    int AvailableQuantity,
     bool IsActive,
     DateTime CreatedAtUtc,
     int CategoryId,

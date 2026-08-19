@@ -6,5 +6,4 @@ public sealed record CreateProductRequest(
     string? Description,
     decimal Price,
     decimal VatPercentage,
-    int StockQuantity,
     int CategoryId);

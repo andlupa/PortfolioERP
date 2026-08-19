@@ -195,6 +195,68 @@ namespace PortfolioERP.Infrastructure.Persistence.Migrations
                     b.ToTable("Customers", (string)null);
                 });
 
+            modelBuilder.Entity("PortfolioERP.Domain.Entities.InventoryItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantityOnHand")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantityReserved")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReorderLevel")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId")
+                        .IsUnique();
+
+                    b.ToTable("InventoryItems", (string)null);
+                });
+
+            modelBuilder.Entity("PortfolioERP.Domain.Entities.InventoryMovement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("OccurredAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ReferenceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferenceType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("InventoryMovements", (string)null);
+                });
+
             modelBuilder.Entity("PortfolioERP.Domain.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -229,9 +291,6 @@ namespace PortfolioERP.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("StockQuantity")
-                        .HasColumnType("int");
 
                     b.Property<decimal>("VatPercentage")
                         .ValueGeneratedOnAdd()
@@ -551,6 +610,28 @@ namespace PortfolioERP.Infrastructure.Persistence.Migrations
                     b.ToTable("Suppliers", (string)null);
                 });
 
+            modelBuilder.Entity("PortfolioERP.Domain.Entities.InventoryItem", b =>
+                {
+                    b.HasOne("PortfolioERP.Domain.Entities.Product", "Product")
+                        .WithOne("Inventory")
+                        .HasForeignKey("PortfolioERP.Domain.Entities.InventoryItem", "ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("PortfolioERP.Domain.Entities.InventoryMovement", b =>
+                {
+                    b.HasOne("PortfolioERP.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("PortfolioERP.Domain.Entities.Product", b =>
                 {
                     b.HasOne("PortfolioERP.Domain.Entities.Category", "Category")
@@ -634,6 +715,8 @@ namespace PortfolioERP.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("PortfolioERP.Domain.Entities.Product", b =>
                 {
+                    b.Navigation("Inventory");
+
                     b.Navigation("OrderLines");
 
                     b.Navigation("PurchaseOrderLines");

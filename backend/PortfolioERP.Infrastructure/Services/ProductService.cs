@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using PortfolioERP.Application.Common;
 using PortfolioERP.Application.Common.Exceptions;
+using Microsoft.Extensions.Logging;
 using PortfolioERP.Application.Features.Products;
 using PortfolioERP.Domain.Entities;
 using PortfolioERP.Infrastructure.Persistence;
-using Microsoft.Extensions.Logging;
+using PortfolioERP.Application.Common.Messaging;
 
 namespace PortfolioERP.Infrastructure.Services;
 
@@ -88,7 +89,9 @@ public sealed class ProductService : IProductService
                 product.Description,
                 product.Price,
                 product.VatPercentage,
-                product.StockQuantity,
+                product.Inventory!.QuantityOnHand,
+                product.Inventory.QuantityReserved,
+                product.Inventory.QuantityOnHand - product.Inventory.QuantityReserved,
                 product.IsActive,
                 product.CreatedAtUtc,
                 product.CategoryId,
@@ -117,7 +120,9 @@ public sealed class ProductService : IProductService
                 product.Description,
                 product.Price,
                 product.VatPercentage,
-                product.StockQuantity,
+                product.Inventory!.QuantityOnHand,
+                product.Inventory.QuantityReserved,
+                product.Inventory.QuantityOnHand - product.Inventory.QuantityReserved,
                 product.IsActive,
                 product.CreatedAtUtc,
                 product.CategoryId,
@@ -161,13 +166,26 @@ public sealed class ProductService : IProductService
             Description = NormalizeOptional(request.Description),
             Price = request.Price,
             VatPercentage = request.VatPercentage,
-            StockQuantity = request.StockQuantity,
             CategoryId = request.CategoryId
+        };
+
+        product.Inventory = new InventoryItem
+        {
+            QuantityOnHand = 0,
+            QuantityReserved = 0,
+            ReorderLevel = 0
         };
 
         _dbContext.Products.Add(product);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        //await _eventPublisher.PublishProductCreatedAsync(
+        //    new ProductCreatedEvent(
+        //        product.Id,
+        //        product.Code,
+        //        product.Name),
+        //    cancellationToken);
 
         var categoryName = await _dbContext.Categories
             .Where(category => category.Id == product.CategoryId)
@@ -229,7 +247,6 @@ public sealed class ProductService : IProductService
         product.Description = NormalizeOptional(request.Description);
         product.Price = request.Price;
         product.VatPercentage = request.VatPercentage;
-        product.StockQuantity = request.StockQuantity;
         product.CategoryId = request.CategoryId;
         product.IsActive = request.IsActive;
 
@@ -303,6 +320,10 @@ public sealed class ProductService : IProductService
         Product product,
         string categoryName)
     {
+        var inventory = product.Inventory
+            ?? throw new InvalidOperationException(
+                $"Inventory for product {product.Id} does not exist.");
+
         return new ProductResponse(
             product.Id,
             product.Code,
@@ -310,7 +331,11 @@ public sealed class ProductService : IProductService
             product.Description,
             product.Price,
             product.VatPercentage,
-            product.StockQuantity,
+
+            inventory.QuantityOnHand,
+            inventory.QuantityReserved,
+            inventory.AvailableQuantity,
+
             product.IsActive,
             product.CreatedAtUtc,
             product.CategoryId,
@@ -351,13 +376,17 @@ public sealed class ProductService : IProductService
                 query.OrderByDescending(product => product.Price)
                     .ThenByDescending(product => product.Id),
 
-            ("stockquantity", false) =>
-                query.OrderBy(product => product.StockQuantity)
-                    .ThenBy(product => product.Id),
+            ("availablequantity", false) =>
+                query.OrderBy(product =>
+                    product.Inventory!.QuantityOnHand -
+                    product.Inventory.QuantityReserved)
+                .ThenBy(product => product.Id),
 
-            ("stockquantity", true) =>
-                query.OrderByDescending(product => product.StockQuantity)
-                    .ThenByDescending(product => product.Id),
+            ("availablequantity", true) =>
+                query.OrderByDescending(product =>
+                    product.Inventory!.QuantityOnHand -
+                    product.Inventory.QuantityReserved)
+                .ThenByDescending(product => product.Id),
 
             ("category", false) =>
                 query.OrderBy(product => product.Category.Name)

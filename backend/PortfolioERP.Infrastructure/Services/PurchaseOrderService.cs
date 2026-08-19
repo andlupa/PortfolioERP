@@ -3,16 +3,23 @@ using PortfolioERP.Application.Features.PurchaseOrders;
 using PortfolioERP.Domain.Entities;
 using PortfolioERP.Domain.Enums;
 using PortfolioERP.Infrastructure.Persistence;
+using PortfolioERP.Application.Common;
+using PortfolioERP.Application.Features.Inventory;
 
 namespace PortfolioERP.Infrastructure.Services;
 
 public class PurchaseOrderService : IPurchaseOrderService
 {
     private readonly AppDbContext _context;
+    private readonly IInventoryService _inventoryService;
 
-    public PurchaseOrderService(AppDbContext context)
+    public PurchaseOrderService(
+        AppDbContext context,
+        IInventoryService inventoryService
+        )
     {
         _context = context;
+        _inventoryService = inventoryService;
     }
 
     public async Task<IReadOnlyList<PurchaseOrderListResponse>>
@@ -240,78 +247,176 @@ public class PurchaseOrderService : IPurchaseOrderService
                 "Unable to load purchase order.");
     }
 
+    //public async Task<PurchaseOrderResponse> ReceiveAsync(
+    //int id,
+    //CancellationToken cancellationToken = default)
+    //{
+    //    var order = await _context.PurchaseOrders
+    //        .Include(o => o.Lines)
+    //        .FirstOrDefaultAsync(
+    //            o => o.Id == id,
+    //            cancellationToken);
+
+    //    if (order is null)
+    //    {
+    //        throw new KeyNotFoundException(
+    //            "Purchase order not found.");
+    //    }
+
+    //    if (order.Status != PurchaseOrderStatus.Ordered)
+    //    {
+    //        throw new InvalidOperationException(
+    //            "Only ordered purchase orders can be received.");
+    //    }
+
+    //    foreach (var line in order.Lines)
+    //    {
+    //        await _inventoryService.ReceiveAsync(
+    //            line.ProductId,
+    //            line.Quantity,
+    //            "PurchaseOrder",
+    //            purchaseOrder.Id,
+    //            cancellationToken);
+    //    }
+
+    //    order.Status = PurchaseOrderStatus.Received;
+    //    order.UpdatedAtUtc = DateTime.UtcNow;
+
+    //    await _context.SaveChangesAsync(
+    //        cancellationToken);
+
+    //    //Console.WriteLine(
+    //    //    $"Publishing GoodsReceived for PO {order.Id}");
+
+    //    //var goodsReceivedEvent =
+    //    //    new GoodsReceivedEvent(
+    //    //        order.Id,
+    //    //        order.Lines
+    //    //            .Select(line =>
+    //    //                new GoodsReceivedLine(
+    //    //                    line.ProductId,
+    //    //                    line.Quantity))
+    //    //            .ToList());
+
+    //    //Console.WriteLine(
+    //    //    $"Publisher implementation: {_eventPublisher.GetType().FullName}");
+
+    //    //await _eventPublisher.PublishGoodsReceivedAsync(
+    //    //    goodsReceivedEvent,
+    //    //    cancellationToken);
+
+    //    //Console.WriteLine(
+    //    //    $"GoodsReceived published for PO {order.Id}");
+
+    //    return await GetByIdAsync(
+    //               id,
+    //               cancellationToken)
+    //           ?? throw new InvalidOperationException(
+    //               "Unable to load purchase order.");
+    //}
+
     public async Task<PurchaseOrderResponse> ReceiveAsync(
     int id,
     CancellationToken cancellationToken = default)
     {
-        await using var transaction =
-            await _context.Database.BeginTransactionAsync(
-                cancellationToken);
+        var strategy =
+            _context.Database.CreateExecutionStrategy();
 
-        try
+        await strategy.ExecuteAsync(async () =>
         {
-            var order = await _context.PurchaseOrders
-                .Include(o => o.Lines)
-                .FirstOrDefaultAsync(
-                    o => o.Id == id,
+            await using var transaction =
+                await _context.Database.BeginTransactionAsync(
                     cancellationToken);
 
-            if (order is null)
+            try
             {
-                throw new KeyNotFoundException(
-                    "Purchase order not found.");
-            }
+                var order = await _context.PurchaseOrders
+                    .Include(o => o.Lines)
+                    .FirstOrDefaultAsync(
+                        o => o.Id == id,
+                        cancellationToken);
 
-            if (order.Status != PurchaseOrderStatus.Ordered)
-            {
-                throw new InvalidOperationException(
-                    "Only ordered purchase orders can be received.");
-            }
+                if (order is null)
+                {
+                    throw new KeyNotFoundException(
+                        "Purchase order not found.");
+                }
 
-            var productIds = order.Lines
-                .Select(l => l.ProductId)
-                .Distinct()
-                .ToList();
+                if (order.Status != PurchaseOrderStatus.Ordered)
+                {
+                    throw new InvalidOperationException(
+                        "Only ordered purchase orders can be received.");
+                }
 
-            var products = await _context.Products
-                .Where(p => productIds.Contains(p.Id))
-                .ToDictionaryAsync(
-                    p => p.Id,
+                //var productIds = order.Lines
+                //    .Select(l => l.ProductId)
+                //    .Distinct()
+                //    .ToList();
+
+                //var products = await _context.Products
+                //    .Where(p => productIds.Contains(p.Id))
+                //    .ToDictionaryAsync(
+                //        p => p.Id,
+                //        cancellationToken);
+
+                //if (products.Count != productIds.Count)
+                //{
+                //    throw new InvalidOperationException(
+                //        "One or more products were not found.");
+                //}
+
+                //foreach (var line in order.Lines)
+                //{
+                //    var product =
+                //        products[line.ProductId];
+
+                //    product.StockQuantity +=
+                //        line.Quantity;
+                //}
+
+                foreach (var line in order.Lines)
+                {
+                    Console.WriteLine(
+                        $"Updating local inventory: " +
+                        $"Product {line.ProductId}, Quantity {line.Quantity}");
+
+                    await _inventoryService.ReceiveAsync(
+                        line.ProductId,
+                        line.Quantity,
+                        "PurchaseOrder",
+                        order.Id,
+                        cancellationToken);
+
+                    Console.WriteLine(
+                        $"Local inventory updated for Product {line.ProductId}");
+                }
+
+                order.Status =
+                    PurchaseOrderStatus.Received;
+
+                order.UpdatedAtUtc =
+                    DateTime.UtcNow;
+
+                await _context.SaveChangesAsync(
                     cancellationToken);
 
-            if (products.Count != productIds.Count)
-            {
-                throw new InvalidOperationException(
-                    "One or more products were not found.");
+                await transaction.CommitAsync(
+                    cancellationToken);
             }
-
-            foreach (var line in order.Lines)
+            catch
             {
-                var product = products[line.ProductId];
+                await transaction.RollbackAsync(
+                    cancellationToken);
 
-                product.StockQuantity += line.Quantity;
+                throw;
             }
+        });
 
-            order.Status = PurchaseOrderStatus.Received;
-            order.UpdatedAtUtc = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync(
-                cancellationToken);
-
-            await transaction.CommitAsync(
-                cancellationToken);
-        }
-        catch
-        {
-            await transaction.RollbackAsync(
-                cancellationToken);
-
-            throw;
-        }
-
-        return await GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException(
-                "Unable to load purchase order.");
+        return await GetByIdAsync(
+                   id,
+                   cancellationToken)
+               ?? throw new InvalidOperationException(
+                   "Unable to load purchase order.");
     }
 
     public async Task<PurchaseOrderResponse> CancelAsync(

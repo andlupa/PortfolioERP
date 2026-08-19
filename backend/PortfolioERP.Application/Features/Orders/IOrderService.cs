@@ -27,4 +27,8 @@ public interface IOrderService
     Task<bool> ConfirmAsync(
         int id,
         CancellationToken cancellationToken);
+
+    Task<bool> ShipAsync(
+        int id,
+        CancellationToken cancellationToken);
 }
