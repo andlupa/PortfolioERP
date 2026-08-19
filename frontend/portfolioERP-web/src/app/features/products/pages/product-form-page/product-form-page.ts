@@ -73,13 +73,6 @@ export class ProductFormPage implements OnInit {
         Validators.min(0)
       ]
     ],
-    stockQuantity: [
-      0,
-      [
-        Validators.required,
-        Validators.min(0)
-      ]
-    ],
     categoryId: [
       0,
       [
@@ -167,7 +160,6 @@ export class ProductFormPage implements OnInit {
           name: product.name,
           description: product.description ?? '',
           price: product.price,
-          stockQuantity: product.stockQuantity,
           categoryId: product.categoryId,
           vatPercentage: product.vatPercentage,
           isActive: product.isActive
@@ -207,7 +199,6 @@ export class ProductFormPage implements OnInit {
         name: value.name.trim(),
         description: this.normalizeOptional(value.description),
         price: value.price,
-        stockQuantity: value.stockQuantity,
         categoryId: value.categoryId,
         vatPercentage: value.vatPercentage
       };
@@ -229,7 +220,6 @@ export class ProductFormPage implements OnInit {
       name: value.name.trim(),
       description: this.normalizeOptional(value.description),
       price: value.price,
-      stockQuantity: value.stockQuantity,
       categoryId: value.categoryId,
       vatPercentage: value.vatPercentage,
       isActive: value.isActive

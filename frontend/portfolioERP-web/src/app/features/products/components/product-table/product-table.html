@@ -49,9 +49,9 @@
         <th class="text-end">
           <button class="sort-button"
                   type="button"
-                  (click)="changeSorting('stockQuantity')">
-            Giacenza
-            @if (sortBy === 'stockQuantity') {
+                  (click)="changeSorting('availableQuantity')">
+            Disponibile
+            @if (sortBy === 'availableQuantity') {
             <span>{{ descending ? '↓' : '↑' }}</span>
             }
           </button>
@@ -86,9 +86,9 @@
         </td>
 
         <td class="text-end">
-          <span [class.text-danger]="product.stockQuantity === 0"
-                [class.fw-semibold]="product.stockQuantity === 0">
-            {{ product.stockQuantity }}
+          <span [class.text-danger]="product.availableQuantity === 0"
+                [class.fw-semibold]="product.availableQuantity === 0">
+            {{ product.availableQuantity }}
           </span>
         </td>
 

@@ -199,27 +199,6 @@
             </div>
           </div>
 
-          <div class="col-md-2">
-            <label class="form-label" for="stockQuantity">
-              Giacenza
-            </label>
-
-            <input id="stockQuantity"
-                   class="form-control"
-                   type="number"
-                   min="0"
-                   step="1"
-                   formControlName="stockQuantity"
-                   [class.is-invalid]="
-                  form.controls.stockQuantity.invalid &&
-                  form.controls.stockQuantity.touched
-                " />
-
-            <div class="invalid-feedback">
-              La giacenza non può essere negativa.
-            </div>
-          </div>
-
           @if (isEditMode) {
           <div class="col-md-2 d-flex align-items-end">
             <div class="form-check form-switch mb-2">

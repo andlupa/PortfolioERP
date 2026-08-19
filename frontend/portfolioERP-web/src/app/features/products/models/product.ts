@@ -4,10 +4,12 @@ export interface Product {
   name: string;
   description: string | null;
   price: number;
-  stockQuantity: number;
-  categoryId: number;
-  categoryName: string;
   vatPercentage: number;
+  quantityOnHand: number;
+  quantityReserved: number;
+  availableQuantity: number;
   isActive: boolean;
   createdAtUtc: string;
+  categoryId: number;
+  categoryName: string;
 }

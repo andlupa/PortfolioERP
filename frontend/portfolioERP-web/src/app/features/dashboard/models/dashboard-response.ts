@@ -18,7 +18,10 @@ export interface LowStockProduct {
   id: number;
   code: string;
   name: string;
-  stockQuantity: number;
+  quantityOnHand: number;
+  quantityReserved: number;
+  availableQuantity: number;
+  reorderLevel: number;
 }
 
 export interface DashboardResponse {

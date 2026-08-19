@@ -1,0 +1,276 @@
+<div class="d-flex justify-content-between align-items-start mb-4">
+
+  <div>
+    <a routerLink="/purchase-orders"
+       class="text-decoration-none">
+      ← Ordini di acquisto
+    </a>
+
+    @if (order(); as currentOrder) {
+    <h1 class="h3 mt-2 mb-1">
+      {{ currentOrder.orderNumber }}
+    </h1>
+
+    <span class="badge"
+          [class]="getStatusClass(currentOrder.status)">
+      {{ getStatusLabel(currentOrder.status) }}
+    </span>
+    }
+  </div>
+
+</div>
+
+@if (error()) {
+<div class="alert alert-danger">
+  {{ error() }}
+</div>
+}
+
+@if (loading()) {
+
+<div class="text-center py-5">
+  <div class="spinner-border"></div>
+</div>
+
+} @else if (order(); as currentOrder) {
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+
+    <div class="row g-4">
+
+      <div class="col-md-4">
+        <div class="text-secondary small">
+          Fornitore
+        </div>
+
+        <strong>
+          {{ currentOrder.supplierCode }}
+          -
+          {{ currentOrder.supplierCompanyName }}
+        </strong>
+      </div>
+
+      <div class="col-md-4">
+        <div class="text-secondary small">
+          Data ordine
+        </div>
+
+        <strong>
+          {{
+              currentOrder.orderDate
+                | date:'dd/MM/yyyy'
+          }}
+        </strong>
+      </div>
+
+      <div class="col-md-4">
+        <div class="text-secondary small">
+          Stato
+        </div>
+
+        <span class="badge"
+              [class]="getStatusClass(currentOrder.status)">
+          {{ getStatusLabel(currentOrder.status) }}
+        </span>
+      </div>
+
+      @if (currentOrder.notes) {
+      <div class="col-12">
+        <div class="text-secondary small">
+          Note
+        </div>
+
+        <div>
+          {{ currentOrder.notes }}
+        </div>
+      </div>
+      }
+
+    </div>
+
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+
+  <div class="card-header">
+    <strong>Prodotti ordinati</strong>
+  </div>
+
+  <div class="table-responsive">
+
+    <table class="table align-middle mb-0">
+
+      <thead class="table-light">
+        <tr>
+          <th>Prodotto</th>
+          <th class="text-end">Quantità</th>
+          <th class="text-end">Prezzo</th>
+          <th class="text-end">Sconto</th>
+          <th class="text-end">Netto</th>
+          <th class="text-end">IVA</th>
+          <th class="text-end">Totale</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        @for (
+        line of currentOrder.lines;
+        track line.id
+        ) {
+
+        <tr>
+          <td>
+            <strong>
+              {{ line.productCode }}
+            </strong>
+
+            <div class="small text-secondary">
+              {{ line.productName }}
+            </div>
+          </td>
+
+          <td class="text-end">
+            {{ line.quantity }}
+          </td>
+
+          <td class="text-end">
+            € {{ line.unitPrice | number:'1.2-2' }}
+          </td>
+
+          <td class="text-end">
+            {{ line.discountPercentage }}%
+          </td>
+
+          <td class="text-end">
+            € {{ line.netAmount | number:'1.2-2' }}
+          </td>
+
+          <td class="text-end">
+            {{ line.vatPercentage }}%
+          </td>
+
+          <td class="text-end">
+            <strong>
+              € {{ line.totalAmount | number:'1.2-2' }}
+            </strong>
+          </td>
+        </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+  <div class="card-footer">
+
+    <div class="row justify-content-end">
+      <div class="col-md-4">
+
+        <div class="d-flex justify-content-between">
+          <span>Imponibile</span>
+
+          <strong>
+            €
+            {{
+                currentOrder.netAmount
+                  | number:'1.2-2'
+            }}
+          </strong>
+        </div>
+
+        <div class="d-flex justify-content-between">
+          <span>IVA</span>
+
+          <strong>
+            €
+            {{
+                currentOrder.vatAmount
+                  | number:'1.2-2'
+            }}
+          </strong>
+        </div>
+
+        <hr>
+
+        <div class="d-flex justify-content-between fs-5">
+          <strong>Totale</strong>
+
+          <strong>
+            €
+            {{
+                currentOrder.totalAmount
+                  | number:'1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+  @if (authService.canWrite()) {
+
+<div class="d-flex justify-content-end gap-2">
+
+  @if (
+  currentOrder.status ===
+  PurchaseOrderStatus.Draft
+  ) {
+
+  <button type="button"
+          class="btn btn-outline-danger"
+          [disabled]="processing()"
+          (click)="cancel()">
+    Annulla ordine
+  </button>
+
+  <button type="button"
+          class="btn btn-primary"
+          [disabled]="processing()"
+          (click)="markAsOrdered()">
+    Conferma ordine
+  </button>
+
+  }
+
+  @if (
+  currentOrder.status ===
+  PurchaseOrderStatus.Ordered
+  ) {
+
+  <button type="button"
+          class="btn btn-outline-danger"
+          [disabled]="processing()"
+          (click)="cancel()">
+    Annulla ordine
+  </button>
+
+  <button type="button"
+          class="btn btn-success"
+          [disabled]="processing()"
+          (click)="receive()">
+    Ricevi merce
+  </button>
+
+  }
+
+</div>
+
+  } @else {
+
+<div class="alert alert-info">
+  Modalità Demo: consultazione in sola lettura.
+</div>
+
+  }
+
+}

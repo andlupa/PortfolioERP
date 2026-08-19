@@ -60,6 +60,14 @@
         Annulla ordine
       </button>
       }
+
+      @if (order()!.status === OrderStatus.Confirmed) {
+      <button type="button"
+              class="btn btn-success"
+              (click)="requestShip()">
+        Spedisci ordine
+      </button>
+      }
     </div>
   </div>
 

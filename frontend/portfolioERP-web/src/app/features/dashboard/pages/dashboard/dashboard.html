@@ -278,9 +278,12 @@
 
             <td class="text-end">
               <span class="badge"
-                    [class.text-bg-danger]="product.stockQuantity === 0"
-                    [class.text-bg-warning]="product.stockQuantity > 0">
-                {{ product.stockQuantity }}
+                    [class.text-bg-danger]="product.availableQuantity === 0"
+                    [class.text-bg-warning]="product.availableQuantity > 0">
+                {{ product.availableQuantity }}
+                <small class="text-muted">
+                  / soglia {{ product.reorderLevel }}
+                </small>
               </span>
             </td>
 

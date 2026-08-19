@@ -121,4 +121,11 @@ export class OrderService {
     );
   }
 
+  ship(id: number): Observable<void> {
+    return this.http.post<void>(
+      `${this.apiUrl}/${id}/ship`,
+      {}
+    );
+  }
+
 }

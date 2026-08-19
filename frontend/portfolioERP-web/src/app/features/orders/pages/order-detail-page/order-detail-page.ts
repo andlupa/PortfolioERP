@@ -36,6 +36,7 @@ import {
 type PendingOrderAction =
   'confirm' |
   'cancel' |
+  'ship' |
   null;
 
 @Component({
@@ -145,15 +146,35 @@ export class OrderDetailPage implements OnInit {
   }
 
   get dialogTitle(): string {
-    return this.pendingAction() === 'confirm'
-      ? 'Conferma ordine'
-      : 'Annulla ordine';
+    switch (this.pendingAction()) {
+      case 'confirm':
+        return 'Conferma ordine';
+
+      case 'cancel':
+        return 'Annulla ordine';
+
+      case 'ship':
+        return 'Spedisci ordine';
+
+      default:
+        return '';
+    }
   }
 
   get dialogConfirmText(): string {
-    return this.pendingAction() === 'confirm'
-      ? 'Conferma ordine'
-      : 'Annulla ordine';
+    switch (this.pendingAction()) {
+      case 'confirm':
+        return 'Conferma ordine';
+
+      case 'cancel':
+        return 'Annulla ordine';
+
+      case 'ship':
+        return 'Spedisci';
+
+      default:
+        return '';
+    }
   }
 
   get dialogDanger(): boolean {
@@ -167,11 +188,19 @@ export class OrderDetailPage implements OnInit {
       return '';
     }
 
-    if (this.pendingAction() === 'confirm') {
-      return `Vuoi confermare l’ordine ${order.orderNumber}?`;
-    }
+    switch (this.pendingAction()) {
+      case 'confirm':
+        return `Vuoi confermare l’ordine ${order.orderNumber}?`;
 
-    return `Vuoi annullare l’ordine ${order.orderNumber}? Le quantità saranno restituite al magazzino.`;
+      case 'cancel':
+        return `Vuoi annullare l’ordine ${order.orderNumber}? Le quantità saranno restituite al magazzino.`;
+
+      case 'ship':
+        return `Confermare la spedizione dell’ordine ${order.orderNumber}?`;
+
+      default:
+        return '';
+    }
   }
 
   loadOrder(id: number): void {
@@ -222,11 +251,12 @@ export class OrderDetailPage implements OnInit {
     if (!order || !action) {
       return;
     }
-
     if (action === 'confirm') {
       this.confirmOrder(order.id);
-    } else {
+    } else if (action === 'cancel') {
       this.cancelOrder(order.id);
+    } else if (action === 'ship') {
+      this.shipOrder(order.id);
     }
   }
 
@@ -258,6 +288,41 @@ export class OrderDetailPage implements OnInit {
         this.showToast(
           error.error?.detail ??
           'Impossibile confermare l’ordine.',
+          'danger'
+        );
+      }
+    });
+  }
+
+  private shipOrder(id: number): void {
+    if (!id) {
+      return;
+    }
+
+    this.processing.set(true);
+
+    this.orderService.ship(id).subscribe({
+      next: () => {
+        this.processing.set(false);
+        this.closeDialog();
+
+        this.showToast(
+          'Ordine spedito con successo.',
+          'success'
+        );
+
+        this.loadOrder(id);
+      },
+      error: error => {
+        this.processing.set(false);
+
+        console.error(
+          'Errore spedizione ordine',
+          error
+        );
+
+        this.showToast(
+          'Errore durante la spedizione dell\'ordine.',
           'danger'
         );
       }
@@ -323,5 +388,9 @@ export class OrderDetailPage implements OnInit {
       this.toastVisible.set(false);
       this.toastTimer = null;
     }, 4000);
+  }
+
+  requestShip(): void {
+    this.pendingAction.set('ship');
   }
 }

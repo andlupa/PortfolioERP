@@ -12,8 +12,15 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'products',
+        redirectTo: 'dashboard',
         pathMatch: 'full'
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import(
+            './features/dashboard/pages/dashboard/dashboard'
+          ).then(component => component.Dashboard)
       },
       {
         path: 'products/new',
@@ -87,11 +94,14 @@ export const routes: Routes = [
           )
       },
       {
-        path: 'dashboard',
+        path: 'purchase-orders/:id',
         loadComponent: () =>
           import(
-            './features/dashboard/pages/dashboard/dashboard'
-          ).then(component => component.Dashboard)
+            './features/purchase-orders/pages/purchase-order-detail-page/purchase-order-detail-page'
+          ).then(
+            component =>
+              component.PurchaseOrderDetailPage
+          )
       },
       {
         path: 'categories/new',
