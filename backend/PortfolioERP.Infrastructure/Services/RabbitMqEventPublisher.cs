@@ -18,24 +18,24 @@ public class RabbitMqEventPublisher : IEventPublisher
         _configuration = configuration;
     }
 
-    public async Task PublishGoodsReceivedAsync(
-        GoodsReceivedEvent message,
-        CancellationToken cancellationToken)
+    public async Task PublishOrderShippedAsync(
+        OrderShippedEvent message,
+        CancellationToken cancellationToken = default)
     {
-        var host =
-            _configuration["RabbitMq:Host"]
+        // Legge la configurazione per l'host di RabbitMQ
+        var connectionString =
+            _configuration["RabbitMq:ConnectionString"]
             ?? throw new InvalidOperationException(
-                "RabbitMq:Host is not configured.");
-
-        Console.WriteLine($"RabbitMQ host: {host}");
+                "RabbitMq:ConnectionString is not configured.");
 
         var factory = new ConnectionFactory
         {
-            HostName = host
+            Uri = new Uri(connectionString)
         };
 
         Console.WriteLine("Opening RabbitMQ connection...");
 
+        // Apre la connessione e il canale in modalità asincrona
         await using var connection =
             await factory.CreateConnectionAsync(cancellationToken);
 
@@ -47,6 +47,7 @@ public class RabbitMqEventPublisher : IEventPublisher
 
         Console.WriteLine("RabbitMQ channel OPEN.");
 
+        // Dichiarazione dell'exchange "portfolio.events" di tipo Topic
         await channel.ExchangeDeclareAsync(
             exchange: "portfolio.events",
             type: ExchangeType.Topic,
@@ -60,57 +61,11 @@ public class RabbitMqEventPublisher : IEventPublisher
 
         var body = Encoding.UTF8.GetBytes(json);
 
+        // Pubblica il messaggio sull'exchange con la routing key "order.shipped"
         await channel.BasicPublishAsync(
             exchange: "portfolio.events",
-            routingKey: "goods.received",
+            routingKey: "order.shipped",
             body: body,
             cancellationToken: cancellationToken);
-
-        Console.WriteLine("Message goods.received PUBLISHED.");
-    }
-
-    public async Task PublishProductCreatedAsync(
-        ProductCreatedEvent message,
-        CancellationToken cancellationToken)
-    {
-        var host =
-            _configuration["RabbitMq:Host"]
-            ?? throw new InvalidOperationException(
-                "RabbitMq:Host is not configured.");
-
-        var factory = new ConnectionFactory
-        {
-            HostName = host
-        };
-
-        await using var connection =
-            await factory.CreateConnectionAsync(
-                cancellationToken);
-
-        await using var channel =
-            await connection.CreateChannelAsync(
-                cancellationToken: cancellationToken);
-
-        await channel.ExchangeDeclareAsync(
-            exchange: "portfolio.events",
-            type: ExchangeType.Topic,
-            durable: true,
-            autoDelete: false,
-            cancellationToken: cancellationToken);
-
-        var json =
-            JsonSerializer.Serialize(message);
-
-        var body =
-            Encoding.UTF8.GetBytes(json);
-
-        await channel.BasicPublishAsync(
-            exchange: "portfolio.events",
-            routingKey: "product.created",
-            body: body,
-            cancellationToken: cancellationToken);
-
-        Console.WriteLine(
-            $"ProductCreated published for Product {message.ProductId}");
     }
 }

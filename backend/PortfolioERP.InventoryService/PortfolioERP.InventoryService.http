@@ -1,6 +1,0 @@
-@PortfolioERP.InventoryService_HostAddress = http://localhost:5225
-
-GET {{PortfolioERP.InventoryService_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

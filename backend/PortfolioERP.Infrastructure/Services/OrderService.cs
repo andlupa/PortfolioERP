@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using PortfolioERP.Application.Common;
 using PortfolioERP.Application.Common.Exceptions;
+using PortfolioERP.Application.Common.Messaging;
 using PortfolioERP.Application.Features.Orders;
 using PortfolioERP.Application.Features.Inventory;
 using PortfolioERP.Domain.Entities;
 using PortfolioERP.Domain.Enums;
 using PortfolioERP.Domain.Services.Orders;
 using PortfolioERP.Infrastructure.Persistence;
-
 
 namespace PortfolioERP.Infrastructure.Services;
 
@@ -16,15 +16,18 @@ public sealed class OrderService : IOrderService
     private readonly AppDbContext _dbContext;
     private readonly IOrderCalculator _orderCalculator;
     private readonly IInventoryService _inventoryService;
+    private readonly IEventPublisher _eventPublisher;
 
     public OrderService(
         AppDbContext dbContext,
         IOrderCalculator orderCalculator,
-        IInventoryService inventoryService)
+        IInventoryService inventoryService,
+        IEventPublisher eventPublisher)
     {
         _dbContext = dbContext;
         _orderCalculator = orderCalculator;
         _inventoryService = inventoryService;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<PagedResponse<OrderListItemResponse>> GetAllAsync(
@@ -684,19 +687,24 @@ public sealed class OrderService : IOrderService
     int id,
     CancellationToken cancellationToken)
     {
+        var shippedAtUtc = DateTime.UtcNow;
+
         var strategy =
             _dbContext.Database.CreateExecutionStrategy();
 
         return await strategy.ExecuteAsync(async () =>
         {
+            
             await using var transaction =
                 await _dbContext.Database.BeginTransactionAsync(
                     cancellationToken);
-
+            
             try
             {
                 var order = await _dbContext.SalesOrders
+                    .Include(order => order.Customer)
                     .Include(order => order.Lines)
+                        .ThenInclude(order => order.Product)
                     .FirstOrDefaultAsync(
                         order => order.Id == id,
                         cancellationToken);
@@ -723,12 +731,45 @@ public sealed class OrderService : IOrderService
                 }
 
                 order.Status = OrderStatus.Shipped;
-                order.UpdatedAtUtc = DateTime.UtcNow;
+                order.UpdatedAtUtc = shippedAtUtc;
 
                 await _dbContext.SaveChangesAsync(
                     cancellationToken);
 
                 await transaction.CommitAsync(
+                    cancellationToken);
+
+                // creo il messaggio per l'evento RabbitQM
+                var message = new OrderShippedEvent(
+                    order.Id,
+                    order.OrderNumber,
+                    shippedAtUtc,
+                    order.CustomerId,
+                    order.Customer.CompanyName,
+                    order.Subtotal,
+                    order.DiscountAmount,
+                    order.TaxAmount,
+                    order.TotalAmount,
+
+                    order.Lines
+                        .Select(line =>
+                            new OrderShippedLineEvent(
+                                line.ProductId,
+                                line.Product.Code,
+                                line.Product.Name,
+                                line.Quantity,
+                                line.UnitPrice,
+                                line.DiscountPercentage,
+                                line.DiscountAmount,
+                                line.NetAmount,
+                                line.VatPercentage,
+                                line.VatAmount,
+                                line.TotalAmount))
+                        .ToList());
+
+                // Pubblico l'evento tramite il publisher
+                await _eventPublisher.PublishOrderShippedAsync(
+                    message,
                     cancellationToken);
 
                 return true;

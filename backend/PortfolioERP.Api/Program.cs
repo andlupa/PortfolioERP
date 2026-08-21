@@ -63,20 +63,6 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryRequestValida
 //Permette ai servizi di accedere all'HttpContext corrente.
 builder.Services.AddHttpContextAccessor();
 
-// Configura il client http del microservizio Inventory
-builder.Services.AddHttpClient<IInventoryClient, InventoryClient>(
-    client =>
-    {
-        // Recupera l'url dall'appsetting o variabili di ambiente
-        var inventoryServiceUrl =
-            builder.Configuration["Services:InventoryService"]
-            ?? throw new InvalidOperationException(
-                "InventoryService URL is not configured.");
-
-        // imposta l'url nel client http, per poter inoltrare le richieste
-        client.BaseAddress = new Uri(inventoryServiceUrl);
-    });
-
 // Registra nella DI i vari servizi
 // AddScoped: per ogni richiesta http viene creata una nuova istanza
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -153,6 +139,7 @@ builder.Services.AddCors(options =>
             // Indirizzi autorizzati ad inviare le richieste
             .WithOrigins(
                 "http://localhost:4200", //Angular locale
+                "http://localhost:5173", //React locale
                 "https://portfolioerp.pages.dev" //frontend Cloudflare
             )
             // Permesso per qualsiasi header e metodo HTTP

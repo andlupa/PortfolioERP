@@ -2,11 +2,7 @@ namespace PortfolioERP.Application.Common.Messaging;
 
 public interface IEventPublisher
 {
-    Task PublishGoodsReceivedAsync(
-        GoodsReceivedEvent message,
-        CancellationToken cancellationToken);
-
-    Task PublishProductCreatedAsync(
-        ProductCreatedEvent message,
-        CancellationToken cancellationToken);
+    Task PublishOrderShippedAsync(
+        OrderShippedEvent message,
+        CancellationToken cancellationToken = default);
 }

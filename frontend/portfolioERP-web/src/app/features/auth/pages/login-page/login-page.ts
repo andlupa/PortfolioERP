@@ -80,7 +80,7 @@ export class LoginPage {
             );
           } else {
             this.error.set(
-              'Impossibile effettuare l’accesso.'
+              'Impossibile effettuare l’accesso. Azure App may require up to 60 seconds to initialize.'
             );
           }
 

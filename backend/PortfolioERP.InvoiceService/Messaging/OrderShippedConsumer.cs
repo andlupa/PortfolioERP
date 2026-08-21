@@ -31,14 +31,14 @@ public sealed class OrderShippedConsumer : BackgroundService
     protected override async Task ExecuteAsync(
         CancellationToken stoppingToken)
     {
-        var host =
-            _configuration["RabbitMq:Host"]
+        var connectionString =
+            _configuration["RabbitMq:ConnectionString"]
             ?? throw new InvalidOperationException(
-                "RabbitMq:Host is not configured.");
+                "RabbitMq:ConnectionString is not configured.");
 
         var factory = new ConnectionFactory
         {
-            HostName = host
+            Uri = new Uri(connectionString)
         };
 
         _connection =
