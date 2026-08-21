@@ -141,6 +141,7 @@ builder.Services.AddCors(options =>
                 "http://localhost:4200", //Angular locale
                 "http://localhost:5173", //React locale
                 "https://portfolioerp.pages.dev" //frontend Cloudflare
+                "https://portfolioerpinv.pages.dev" //frontend Cloudflare Inventory
             )
             // Permesso per qualsiasi header e metodo HTTP
             .AllowAnyHeader()
