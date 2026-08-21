@@ -1,0 +1,54 @@
+name: InvoiceService CI/CD
+
+permissions:
+  contents: read
+  packages: write
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "backend/PortfolioERP.InvoiceService/**"
+      - ".github/workflows/invoice-service.yml"
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: >
+          dotnet restore
+          backend/PortfolioERP.InvoiceService/PortfolioERP.InvoiceService.csproj
+
+      - name: Build
+        run: >
+          dotnet build
+          backend/PortfolioERP.InvoiceService/PortfolioERP.InvoiceService.csproj
+          --no-restore
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ghcr.io/${{ github.repository_owner }}/portfolioerp-invoice:${{ github.sha }} \
+            backend/PortfolioERP.InvoiceService
+
+      - name: Push Docker image
+        run: |
+          docker push \
+            ghcr.io/${{ github.repository_owner }}/portfolioerp-invoice:${{ github.sha }}
