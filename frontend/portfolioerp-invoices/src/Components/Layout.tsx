@@ -7,6 +7,8 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
+    const ERP_URL =
+        import.meta.env.VITE_ERP_URL;
 
     const navigate = useNavigate();
     const user = getUser();
@@ -44,7 +46,7 @@ export default function Layout({ children }: LayoutProps) {
 
                         <a
                             className="btn btn-outline-light btn-sm"
-                            href="http://localhost:4200"
+                            href={ERP_URL}
                         >
                             ← ERP
                         </a>

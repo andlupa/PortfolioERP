@@ -1,7 +1,8 @@
 import type { Invoice } from '../models/invoice';
 import { getToken, removeAuth } from '../auth/tokenStorage';
 
-const API_URL = 'http://localhost:5065';
+const API_URL =
+    import.meta.env.VITE_INVOICE_API_URL;
 
 async function authenticatedFetch(
     url: string
@@ -53,14 +54,4 @@ export async function getInvoiceById(
     }
 
     return response.json();
-}
-
-function getAuthHeaders(): HeadersInit {
-    const token = getToken();
-
-    return token
-        ? {
-            Authorization: `Bearer ${token}`
-        }
-        : {};
 }

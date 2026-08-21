@@ -1,4 +1,5 @@
-const ERP_API_URL = 'http://localhost:5063';
+const ERP_API_URL =
+    import.meta.env.VITE_ERP_API_URL;
 
 export interface LoginRequest {
     username: string;
