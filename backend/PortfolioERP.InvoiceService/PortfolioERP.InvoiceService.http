@@ -1,0 +1,6 @@
+@PortfolioERP.InvoiceService_HostAddress = http://localhost:5065
+
+GET {{PortfolioERP.InvoiceService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
